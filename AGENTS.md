@@ -52,6 +52,58 @@ This file guides agentic coding agents working on Retire, Eh? — a Canadian ret
 - Use conservative assumptions as defaults
 - Use neutral, professional visuals and interactions
 
+## UI Architecture
+
+### Tab Navigation
+
+The app uses a horizontal tab layout with 5 sections:
+
+| Tab | Purpose | Default |
+|-----|---------|---------|
+| Plan | Input: people, accounts, assumptions | Yes |
+| Overview | Summary card, key metrics, goal progress | No |
+| Projections | Growth charts and projection details | No |
+| Income | Retirement income breakdown by source | No |
+| Learn | Educational content about methodology | No |
+
+### Component Structure
+
+```
+App.tsx
+├── Header.tsx (logo, export/import, dark mode)
+├── Tabs.tsx (tab navigation)
+├── Tab Content (one active at a time)
+│   ├── OverviewTab.tsx
+│   │   ├── SummaryCard.tsx
+│   │   ├── ViewSelector.tsx
+│   │   ├── PortfolioCard.tsx
+│   │   ├── RetirementProjectionCard.tsx
+│   │   └── GoalsCard.tsx
+│   ├── PlanTab.tsx
+│   │   ├── PersonSelector.tsx
+│   │   ├── PersonForm.tsx
+│   │   └── AssumptionsPanel.tsx
+│   ├── ProjectionsTab.tsx
+│   │   └── GrowthChart.tsx
+│   ├── IncomeTab.tsx
+│   │   └── IncomeBreakdownCard.tsx
+│   └── LearnTab.tsx
+└── Footer.tsx
+```
+
+### State Management
+
+- All state lives in `App.tsx`
+- Tab components receive props and render
+- Changes in Plan tab immediately update other tabs (real-time)
+- Active tab state: `activeTab: 'overview' | 'plan' | 'projections' | 'income' | 'learn'`
+
+### Mobile Responsiveness
+
+- Tabs scroll horizontally on mobile
+- Tab bar is sticky at top
+- Touch-friendly hit areas (min 44px height)
+
 ## OpenCode Workflow
 
 This project includes custom OpenCode commands and agents for structured development.

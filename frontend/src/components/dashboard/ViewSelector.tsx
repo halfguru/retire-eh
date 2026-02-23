@@ -1,16 +1,12 @@
 import type { Person } from '@/hooks/usePeopleManagement'
 
 interface ViewSelectorProps {
-  portfolioView: 'combined' | 'individual'
-  onViewChange: (view: 'combined' | 'individual') => void
   selectedPortfolioPersonId: string | null
   people: Person[]
-  onPersonChange: (personId: string) => void
+  onPersonChange: (personId: string | null) => void
 }
 
 export function ViewSelector({
-  portfolioView,
-  onViewChange,
   selectedPortfolioPersonId,
   people,
   onPersonChange
@@ -18,46 +14,23 @@ export function ViewSelector({
   if (people.length <= 1) return null
 
   return (
-    <div className="flex gap-4 mb-4">
-      <div className="flex gap-2">
-        <button
-          onClick={() => onViewChange('combined')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-            portfolioView === 'combined'
-              ? 'bg-indigo-500 text-white shadow-md'
-              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-          }`}
-        >
-          Household
-        </button>
-        <button
-          onClick={() => onViewChange('individual')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-            portfolioView === 'individual'
-              ? 'bg-indigo-500 text-white shadow-md'
-              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-          }`}
-        >
-          Individual
-        </button>
-      </div>
-      {portfolioView === 'individual' && (
-        <div className="flex gap-2">
-          {people.map((person) => (
-            <button
-              key={person.id}
-              onClick={() => onPersonChange(person.id)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                selectedPortfolioPersonId === person.id
-                  ? 'bg-indigo-500 text-white shadow-md'
-                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              {person.name}
-            </button>
-          ))}
-        </div>
-      )}
+    <div className="flex items-center gap-2">
+      <label htmlFor="view-select" className="text-sm text-gray-600 dark:text-gray-400">
+        View:
+      </label>
+      <select
+        id="view-select"
+        value={selectedPortfolioPersonId || 'household'}
+        onChange={(e) => onPersonChange(e.target.value === 'household' ? null : e.target.value)}
+        className="px-3 py-2 text-sm rounded-lg border-2 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+      >
+        <option value="household">Household</option>
+        {people.map((person) => (
+          <option key={person.id} value={person.id}>
+            {person.name}
+          </option>
+        ))}
+      </select>
     </div>
   )
 }

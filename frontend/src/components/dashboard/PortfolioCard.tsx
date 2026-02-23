@@ -6,7 +6,7 @@ interface PortfolioCardProps {
   selectedPersonPortfolio: number
   allAccounts: Account[]
   selectedPersonAccounts: Account[]
-  selectedPortfolioPerson: Person
+  selectedPortfolioPerson: Person | undefined
 }
 
 export function PortfolioCard({
