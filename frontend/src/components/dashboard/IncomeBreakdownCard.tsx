@@ -49,7 +49,7 @@ export function IncomeBreakdownCard({
   ].filter(source => source.amount > 0 || source.name === 'Portfolio Withdrawal')
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-900 rounded-lg shadow-lg border border-slate-200 dark:border-gray-700 p-4 sm:p-6">
+    <div style={{ animation: 'fadeInUp 0.5s ease-out forwards', opacity: 0 }} className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-900 rounded-lg shadow-lg border border-slate-200 dark:border-gray-700 p-4 sm:p-6">
       <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white mb-4 sm:mb-6">
         💰 Retirement Income Breakdown
       </h2>

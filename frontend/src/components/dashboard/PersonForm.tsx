@@ -34,14 +34,10 @@ function NumberInput({ value, onChange, step, min }: { value: number, onChange: 
         onBlur={() => setFocused(false)}
         autoComplete="off"
         data-lpignore="true"
-        className="number-input w-full px-3 py-2 pr-8 bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded"
-        style={{
-          caretColor: '#1f2937',
-        }}
+        className="number-input w-full px-2.5 py-1.5 pr-7 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded border border-gray-300 dark:border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+        style={{ caretColor: '#1f2937' }}
       />
-      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">
-        $
-      </span>
+      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-xs">$</span>
       <style>{`
         .number-input::-webkit-autofill,
         .number-input:-webkit-autofill,
@@ -52,13 +48,6 @@ function NumberInput({ value, onChange, step, min }: { value: number, onChange: 
           background-color: #fff !important;
           background-image: none !important;
           transition: background-color 5000s ease-in-out 0s;
-        }
-        .number-input:-webkit-autofill:hover,
-        .number-input:-webkit-autofill:focus {
-          -webkit-text-fill-color: #111827;
-          -webkit-box-shadow: 0 0 0 30px #fff inset;
-          background-color: #fff !important;
-          background-image: none !important;
         }
         @media (prefers-color-scheme: dark) {
           .number-input::-webkit-autofill,
@@ -119,7 +108,6 @@ export function PersonForm({
         setShowAddMenu(null)
       }
     }
-
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
   }, [])
@@ -130,25 +118,23 @@ export function PersonForm({
   const canDeletePerson = people.length > 1
 
   return (
-    <div ref={menuContainerRef}>
-      <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
-        👤 Person Details
-      </h2>
-      <div className="mb-4">
+    <div ref={menuContainerRef} className="space-y-3">
+      <div className="mb-3">
         <input
           type="text"
           value={person.name}
           onChange={(e) => onUpdatePerson(person.id, 'name', e.target.value)}
-          className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white font-medium focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-          placeholder="Person's name"
+          className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-slate-800 text-gray-900 dark:text-white font-medium focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+          placeholder="Name"
         />
       </div>
-      <div className="space-y-4">
+
+      <div className="grid grid-cols-2 gap-3">
         <div>
-          <div className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
             Annual Income
-            <InfoTooltip text="This person's annual income before retirement" />
-          </div>
+            <InfoTooltip text="Annual income before retirement" />
+          </label>
           <NumberInput
             value={person.annualIncome || 0}
             onChange={(val) => onUpdatePersonAnnualIncome(person.id, val)}
@@ -157,10 +143,10 @@ export function PersonForm({
           />
         </div>
         <div>
-          <div className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Annual Pension (CPP/Employee)
-            <InfoTooltip text="Expected annual pension income at retirement (CPP, employer pension, etc.)" />
-          </div>
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+            Pension (CPP/Employer)
+            <InfoTooltip text="Expected annual pension at retirement" />
+          </label>
           <NumberInput
             value={person.annualPension || 0}
             onChange={(val) => onUpdatePersonAnnualPension(person.id, val)}
@@ -168,107 +154,96 @@ export function PersonForm({
             min={0}
           />
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Current Age
-            </label>
-            <input
-              type="number"
-              min={0}
-              max={100}
-              value={person.currentAge}
-              onChange={(e) => onUpdatePerson(person.id, 'currentAge', e.target.valueAsNumber)}
-              className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 shadow-sm transition-all"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Retirement Age
-            </label>
-            <input
-              type="number"
-              min={person.currentAge + 1}
-              max={100}
-              value={person.retirementAge}
-              onChange={(e) => onUpdatePerson(person.id, 'retirementAge', e.target.valueAsNumber)}
-              className="w-full px-3 py-2 border-2 border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 shadow-sm transition-all"
-            />
-          </div>
-        </div>
+      </div>
 
-        {person.retirementAge <= person.currentAge && (
-          <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-lg border border-amber-200 dark:border-amber-800">
-            ⚠️ Retirement age must be greater than current age
-          </div>
-        )}
-
+      <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Accounts
-          </label>
-          {person.accounts.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400 italic py-2">No accounts added</p>
-          ) : (
-            <div className="space-y-3">
-              {person.accounts.map((account) => (
-                <AccountCard
-                  key={account.id}
-                  account={account}
-                  onDelete={() => onDeleteAccount(person.id, account.id)}
-                  onUpdateBalance={(balance: number) => onUpdateAccountBalance(person.id, account.id, balance)}
-                  onUpdateContribution={(contribution: number) => onUpdateAccountContribution(person.id, account.id, contribution)}
-                />
-              ))}
-            </div>
-          )}
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Current Age</label>
+          <input
+            type="number"
+            min={0}
+            max={100}
+            value={person.currentAge}
+            onChange={(e) => onUpdatePerson(person.id, 'currentAge', e.target.valueAsNumber)}
+            className="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+          />
         </div>
-
-        <div className="relative">
-          <button
-            onClick={() => setShowAddMenu(person.id)}
-            data-add-menu-trigger
-            className="w-full px-4 py-2 border-2 border-dashed border-blue-300 dark:border-blue-700 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 text-sm font-medium transition-all"
-          >
-            ➕ Add Account
-          </button>
-          {showAddMenu === person.id && (
-            <div data-add-menu className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg">
-              <button
-                onClick={() => {
-                  onAddAccount(person.id, 'RRSP')
-                  setShowAddMenu(null)
-                }}
-                className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 first:rounded-t-lg last:rounded-b-lg transition-colors"
-              >
-                <span className="inline-block w-3 h-3 rounded-full bg-indigo-500 mr-2"></span>
-                RRSP
-              </button>
-              <button
-                onClick={() => {
-                  onAddAccount(person.id, 'TFSA')
-                  setShowAddMenu(null)
-                }}
-                className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 first:rounded-t-lg last:rounded-b-lg transition-colors"
-              >
-                <span className="inline-block w-3 h-3 rounded-full bg-emerald-500 mr-2"></span>
-                TFSA
-              </button>
-            </div>
-          )}
+        <div>
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Retirement Age</label>
+          <input
+            type="number"
+            min={person.currentAge + 1}
+            max={100}
+            value={person.retirementAge}
+            onChange={(e) => onUpdatePerson(person.id, 'retirementAge', e.target.valueAsNumber)}
+            className="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20"
+          />
         </div>
+      </div>
 
-        {canDeletePerson && (
-          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+      {person.retirementAge <= person.currentAge && (
+        <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-1.5 rounded border border-amber-200 dark:border-amber-800">
+          Retirement age must be greater than current age
+        </div>
+      )}
+
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Accounts</span>
+          <div className="relative">
             <button
-              onClick={() => onDeletePerson(person.id)}
-              className="w-full px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg transition-colors"
+              onClick={() => setShowAddMenu(person.id)}
+              data-add-menu-trigger
+              className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
             >
-              Delete this person
+              + Add
             </button>
+            {showAddMenu === person.id && (
+              <div data-add-menu className="absolute z-50 right-0 mt-1 w-28 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg">
+                <button
+                  onClick={() => { onAddAccount(person.id, 'RRSP'); setShowAddMenu(null) }}
+                  className="w-full px-3 py-1.5 text-left text-xs text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-t-lg"
+                >
+                  <span className="inline-block w-2 h-2 rounded-full bg-indigo-500 mr-1.5"></span>RRSP
+                </button>
+                <button
+                  onClick={() => { onAddAccount(person.id, 'TFSA'); setShowAddMenu(null) }}
+                  className="w-full px-3 py-1.5 text-left text-xs text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-b-lg"
+                >
+                  <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span>TFSA
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {person.accounts.length === 0 ? (
+          <p className="text-xs text-gray-400 dark:text-gray-500 italic">No accounts</p>
+        ) : (
+          <div className="space-y-2">
+            {person.accounts.map((account) => (
+              <AccountCard
+                key={account.id}
+                account={account}
+                onDelete={() => onDeleteAccount(person.id, account.id)}
+                onUpdateBalance={(balance: number) => onUpdateAccountBalance(person.id, account.id, balance)}
+                onUpdateContribution={(contribution: number) => onUpdateAccountContribution(person.id, account.id, contribution)}
+              />
+            ))}
           </div>
         )}
       </div>
+
+      {canDeletePerson && (
+        <div className="flex justify-end pt-2">
+          <button
+            onClick={() => onDeletePerson(person.id)}
+            className="text-xs text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+          >
+            delete person
+          </button>
+        </div>
+      )}
     </div>
   )
 }

@@ -167,7 +167,7 @@ export function LearnTab() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-900 rounded-lg shadow-lg border border-slate-200 dark:border-gray-700 p-4 sm:p-6">
+      <div style={{ animation: 'fadeInUp 0.5s ease-out forwards', opacity: 0 }} className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-900 rounded-lg shadow-lg border border-slate-200 dark:border-gray-700 p-4 sm:p-6">
         <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white mb-2">
           📚 Learn About Retirement Planning
         </h2>
@@ -178,16 +178,17 @@ export function LearnTab() {
 
       <div className="space-y-3">
         {sections.map((section, index) => (
-          <AccordionItem
-            key={section.title}
-            section={section}
-            isOpen={openIndex === index}
-            onToggle={() => setOpenIndex(openIndex === index ? null : index)}
-          />
+          <div key={section.title} style={{ animation: `fadeInUp 0.5s ease-out ${0.1 + index * 0.05}s forwards`, opacity: 0 }}>
+            <AccordionItem
+              section={section}
+              isOpen={openIndex === index}
+              onToggle={() => setOpenIndex(openIndex === index ? null : index)}
+            />
+          </div>
         ))}
       </div>
 
-      <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 p-4">
+      <div style={{ animation: 'fadeInUp 0.5s ease-out 0.35s forwards', opacity: 0 }} className="bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 p-4">
         <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-2">⚠️ Disclaimer</h3>
         <p className="text-sm text-amber-700 dark:text-amber-300">
           This calculator provides estimates for educational purposes only. It is not financial advice. 

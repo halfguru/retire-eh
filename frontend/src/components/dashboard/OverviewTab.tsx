@@ -15,10 +15,8 @@ interface OverviewTabProps {
   allAccounts: Account[]
   selectedPersonAccounts: Account[]
   selectedPortfolioPerson: Person | undefined
-  portfolioView: 'combined' | 'individual'
-  onViewChange: (view: 'combined' | 'individual') => void
   portfolioPersonId: string | null
-  onPersonChange: (id: string) => void
+  onPersonChange: (id: string | null) => void
   yearsToRetirement: number
   totalAnnualIncome: number
   totalAnnualPension: number
@@ -39,8 +37,6 @@ export function OverviewTab({
   allAccounts,
   selectedPersonAccounts,
   selectedPortfolioPerson,
-  portfolioView,
-  onViewChange,
   portfolioPersonId,
   onPersonChange,
   yearsToRetirement,
@@ -53,6 +49,8 @@ export function OverviewTab({
   currentAnnualContributions,
   householdRetirementAge
 }: OverviewTabProps) {
+  const portfolioView = portfolioPersonId ? 'individual' : 'combined'
+
   return (
     <div className="space-y-6">
       <SummaryCard
@@ -70,8 +68,6 @@ export function OverviewTab({
       />
 
       <ViewSelector
-        portfolioView={portfolioView}
-        onViewChange={onViewChange}
         selectedPortfolioPersonId={portfolioPersonId}
         people={people}
         onPersonChange={onPersonChange}

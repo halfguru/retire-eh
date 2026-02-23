@@ -44,7 +44,6 @@ function App() {
     return saved !== null ? parseFloat(saved) : 4.0
   })
 
-  const [portfolioView, setPortfolioView] = useState<'combined' | 'individual'>('combined')
   const [portfolioPersonId, setPortfolioPersonId] = useState<string | null>(() => {
     const saved = localStorage.getItem('people')
     if (saved) {
@@ -100,8 +99,9 @@ function App() {
 
   const effectivePortfolioPersonId = useMemo(() => {
     if (people.length === 0) return null
+    if (portfolioPersonId === null) return null
     const isValid = people.some(p => p.id === portfolioPersonId)
-    return isValid ? portfolioPersonId : people[0].id
+    return isValid ? portfolioPersonId : null
   }, [people, portfolioPersonId])
 
   const householdRetirementAge = Math.max(...people.map(p => p.retirementAge))
@@ -111,9 +111,11 @@ function App() {
   const allAccounts = people.flatMap(p => p.accounts)
   const totalPortfolio = allAccounts.reduce((sum, acc) => sum + (acc.balance || 0), 0)
   const totalAnnualContributions = allAccounts.reduce((sum, acc) => sum + (acc.annualContribution || 0), 0)
-  const selectedPortfolioPerson = people.find(p => p.id === effectivePortfolioPersonId) || people[0]
+  const selectedPortfolioPerson = effectivePortfolioPersonId ? people.find(p => p.id === effectivePortfolioPersonId) : undefined
   const selectedPersonAccounts = useMemo(() => selectedPortfolioPerson?.accounts || [], [selectedPortfolioPerson])
   const selectedPersonPortfolio = useMemo(() => selectedPersonAccounts.reduce((sum, acc) => sum + (acc.balance || 0), 0), [selectedPersonAccounts])
+
+  const portfolioView = effectivePortfolioPersonId ? 'individual' : 'combined'
 
   const projectionData = useMemo(() => {
     const youngestAge = Math.min(...people.map(p => p.currentAge))
@@ -208,9 +210,7 @@ function App() {
             allAccounts={allAccounts}
             selectedPersonAccounts={selectedPersonAccounts}
             selectedPortfolioPerson={selectedPortfolioPerson}
-            portfolioView={portfolioView}
-            onViewChange={setPortfolioView}
-            portfolioPersonId={portfolioPersonId}
+            portfolioPersonId={effectivePortfolioPersonId}
             onPersonChange={setPortfolioPersonId}
             yearsToRetirement={yearsToRetirement}
             totalAnnualIncome={totalAnnualIncome}

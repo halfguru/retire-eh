@@ -24,7 +24,7 @@ export function Header({
               Retire, Eh? 🍁
             </h1>
             <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mt-1">
-              Plan your retirement, eh?
+              Simple Canadian retirement planner
             </p>
           </div>
           <div className="flex flex-wrap gap-2 items-center">

@@ -67,7 +67,7 @@ export function SummaryCard({
   const projectedAnnualIncome = (portfolioAtRetirement * (withdrawalRate / 100)) + annualPension
 
   return (
-    <div className={`rounded-xl shadow-lg border-2 p-6 sm:p-8 ${isOnTrack
+    <div style={{ animation: 'fadeInUp 0.5s ease-out forwards', opacity: 0 }} className={`rounded-xl shadow-lg border-2 p-6 sm:p-8 ${isOnTrack
       ? 'bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 border-emerald-300 dark:border-emerald-700'
       : 'bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/30 border-amber-300 dark:border-amber-700'
     }`}>
