@@ -48,20 +48,23 @@ export function PlanTab({
   withdrawalRate,
   setWithdrawalRate
 }: PlanTabProps) {
+  if (people.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500 dark:text-gray-400 mb-3">No people added yet</p>
+        <button
+          onClick={onAddPerson}
+          className="px-4 py-2 text-sm font-medium rounded bg-indigo-500 text-white hover:bg-indigo-600 transition-colors"
+        >
+          Add Person
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-4">
-      {people.length === 0 ? (
-        <div className="text-center py-8">
-          <p className="text-gray-500 dark:text-gray-400 mb-3">No people added yet</p>
-          <button
-            onClick={onAddPerson}
-            className="px-4 py-2 text-sm font-medium rounded bg-indigo-500 text-white hover:bg-indigo-600 transition-colors"
-          >
-            Add Person
-          </button>
-        </div>
-      ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center justify-between mb-3">
             <PersonSelector
               people={people}
@@ -88,8 +91,7 @@ export function PlanTab({
             onUpdateAccountBalance={onUpdateAccountBalance}
             onUpdateAccountContribution={onUpdateAccountContribution}
           />
-        </div>
-      )}
+      </div>
 
       <AssumptionsPanel
         expectedReturn={expectedReturn}

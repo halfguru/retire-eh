@@ -22,9 +22,9 @@ export function AssumptionsPanel({
   setWithdrawalRate
 }: AssumptionsPanelProps) {
   return (
-    <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 p-3" style={{ animation: 'fadeInUp 0.5s ease-out forwards', opacity: 0 }}>
-      <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Assumptions</div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 p-4 h-fit">
+      <div className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-3">Assumptions</div>
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
             Investment Return <InfoTooltip text="Expected annual return on investments" />
@@ -37,9 +37,9 @@ export function AssumptionsPanel({
               step={0.5}
               value={expectedReturn}
               onChange={(e) => setExpectedReturn(e.target.valueAsNumber)}
-              className="w-full px-2 py-1 pr-6 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
+              className="w-full px-3 py-2 pr-7 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
             />
-            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
           </div>
         </div>
         <div>
@@ -54,9 +54,9 @@ export function AssumptionsPanel({
               step={0.5}
               value={inflationRate}
               onChange={(e) => setInflationRate(e.target.valueAsNumber)}
-              className="w-full px-2 py-1 pr-6 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
+              className="w-full px-3 py-2 pr-7 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
             />
-            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
           </div>
         </div>
         <div>
@@ -71,9 +71,9 @@ export function AssumptionsPanel({
               step={5}
               value={replacementRate}
               onChange={(e) => setReplacementRate(e.target.valueAsNumber)}
-              className="w-full px-2 py-1 pr-6 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
+              className="w-full px-3 py-2 pr-7 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
             />
-            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
           </div>
         </div>
         <div>
@@ -88,9 +88,9 @@ export function AssumptionsPanel({
               step={0.1}
               value={withdrawalRate}
               onChange={(e) => setWithdrawalRate(e.target.valueAsNumber)}
-              className="w-full px-2 py-1 pr-6 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
+              className="w-full px-3 py-2 pr-7 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
             />
-            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">%</span>
           </div>
         </div>
       </div>
