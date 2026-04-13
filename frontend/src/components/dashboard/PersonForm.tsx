@@ -119,13 +119,13 @@ export function PersonForm({
 
   return (
     <div ref={menuContainerRef} className="space-y-3">
-      <div className="mb-3">
+      <div>
+        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Name</label>
         <input
           type="text"
           value={person.name}
           onChange={(e) => onUpdatePerson(person.id, 'name', e.target.value)}
           className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-slate-800 text-gray-900 dark:text-white font-medium focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
-          placeholder="Name"
         />
       </div>
 
@@ -238,9 +238,9 @@ export function PersonForm({
         <div className="flex justify-end pt-2">
           <button
             onClick={() => onDeletePerson(person.id)}
-            className="text-xs text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+            className="text-xs text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
           >
-            delete person
+            - delete person
           </button>
         </div>
       )}

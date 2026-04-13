@@ -7,7 +7,13 @@ interface PersonSelectorProps {
 }
 
 export function PersonSelector({ people, selectedPersonId, onSelect }: PersonSelectorProps) {
-  if (people.length <= 1) return null
+  if (people.length <= 1) {
+    return (
+      <div className="px-3 py-1 text-sm font-medium text-gray-600 dark:text-gray-400">
+        {people[0]?.name || 'Person'}
+      </div>
+    )
+  }
 
   return (
     <div className="flex gap-1.5 overflow-x-auto pb-1">
