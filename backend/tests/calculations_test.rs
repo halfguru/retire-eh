@@ -2,9 +2,7 @@ use retirement_core::calculations::{
     calculate_additional_annual_savings, calculate_projection, calculate_simple_projection,
     calculate_yearly_projections,
 };
-use retirement_core::models::{
-    AccountBalance, Assumptions, ContributionConfig, HouseholdConfig,
-};
+use retirement_core::models::{AccountBalance, Assumptions, ContributionConfig, HouseholdConfig};
 
 #[test]
 fn test_additional_annual_savings_no_gap() {
