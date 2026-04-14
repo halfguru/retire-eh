@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This file guides agentic coding agents working on Retire, Eh? — a Canadian retirement planning app.
+This file guides agentic coding agents working on Retire, Eh?, a Canadian retirement planning app.
 
 ## Build Commands
 
@@ -69,34 +69,44 @@ The app uses a horizontal tab layout with 5 sections:
 ### Component Structure
 
 ```
-App.tsx
-├── Header.tsx (logo, export/import, dark mode)
-├── Tabs.tsx (tab navigation)
-├── Tab Content (one active at a time)
-│   ├── OverviewTab.tsx
-│   │   ├── SummaryCard.tsx
-│   │   ├── ViewSelector.tsx
-│   │   ├── PortfolioCard.tsx
-│   │   ├── RetirementProjectionCard.tsx
-│   │   └── GoalsCard.tsx
-│   ├── PlanTab.tsx
-│   │   ├── PersonSelector.tsx
-│   │   ├── PersonForm.tsx
-│   │   └── AssumptionsPanel.tsx
-│   ├── ProjectionsTab.tsx
-│   │   └── GrowthChart.tsx
-│   ├── IncomeTab.tsx
-│   │   └── IncomeBreakdownCard.tsx
-│   └── LearnTab.tsx
-└── Footer.tsx
+App.tsx (provider shell)
+├── PeopleProvider
+│   └── AssumptionsProvider
+│       └── ProjectionProvider
+│           └── AppContent
+│               ├── Header.tsx (logo, export/import, dark mode)
+│               ├── Tabs.tsx (tab navigation)
+│               ├── Tab Content (one active at a time)
+│               │   ├── OverviewTab.tsx
+│               │   │   ├── SummaryCard.tsx
+│               │   │   ├── ViewSelector.tsx
+│               │   │   ├── PortfolioCard.tsx
+│               │   │   ├── RetirementProjectionCard.tsx
+│               │   │   └── GoalsCard.tsx
+│               │   ├── PlanTab.tsx
+│               │   │   ├── PersonSelector.tsx
+│               │   │   ├── PersonForm.tsx
+│               │   │   └── AssumptionsPanel.tsx
+│               │   ├── ProjectionsTab.tsx
+│               │   │   └── GrowthChart.tsx (lazy-loaded)
+│               │   ├── IncomeTab.tsx
+│               │   │   └── IncomeBreakdownCard.tsx
+│               │   └── LearnTab.tsx
+│               └── Footer.tsx (version display)
+├── ErrorBoundary (shell-level)
+└── ErrorBoundary (tab-level, wrapping tab content)
 ```
 
 ### State Management
 
-- All state lives in `App.tsx`
-- Tab components receive props and render
-- Changes in Plan tab immediately update other tabs (real-time)
-- Active tab state: `activeTab: 'overview' | 'plan' | 'projections' | 'income' | 'learn'`
+- State is split across React Context providers (see `src/contexts/`)
+- `PeopleProvider` owns people CRUD and selection via `useReducer`
+- `AssumptionsProvider` owns assumptions with localStorage persistence
+- `ProjectionProvider` derives projection data from both contexts
+- `usePersistence` hook coordinates localStorage writes
+- `App.tsx` is a thin layout shell (~60 lines) that nests providers
+- Leaf components consume contexts directly via hooks (`usePeople`, `useAssumptions`, `useProjectionContext`)
+- Active tab state lives in `AppContent` component
 
 ### Mobile Responsiveness
 
@@ -104,28 +114,21 @@ App.tsx
 - Tab bar is sticky at top
 - Touch-friendly hit areas (min 44px height)
 
-## OpenCode Workflow
+## Testing
 
-This project includes custom OpenCode commands and agents for structured development.
+### Frontend (60 tests)
+- `src/test/wasm-bridge.test.ts` - WASM bridge integration tests (snake_case field mapping)
+- `src/test/people-context.test.tsx` - PeopleContext consumer tests (CRUD, selection, import)
+- `src/test/validation.test.ts` - Zod validation tests
+- `src/test/yaml-utils.test.ts` - YAML import/export tests
+- `src/test/wasm-loader.test.ts` - WASM loader unit tests
+- Tests use `vi.mock('@/lib/retirement_core.js')` with a class-based mock
+- Mock factory is hoisted by vitest: all variables must be defined inside the factory
 
-### Commands
+### Backend (19 tests)
+- `backend/tests/calculations_test.rs` - All Rust calculation functions with edge cases
 
-| Command | Description |
-|---------|-------------|
-| `/feature <name>` | Full workflow: explore → plan → build → validate → PR |
-| `/review` | Multi-specialist code review (frontend, WASM, infra) |
-| `/prepare-pr` | Generate PR with WASM artifact validation |
-
-### Agents
-
-| Agent | Specialization |
-|-------|----------------|
-| `@review-frontend` | React/TypeScript patterns, accessibility, performance |
-| `@review-wasm` | Rust/WASM best practices, memory safety |
-| `@review-infra` | CI/CD pipelines, build process, security |
-
-### Skills
-
-Skills are loaded on-demand via `/skill <name>` (located in `.agents/skills/`):
-- `react-component` - React component patterns with TypeScript
-- `wasm-workflow` - WASM build and integration workflow
+### Shared Utilities
+- `src/lib/formatting.ts` - `formatMoney()`, `formatCompactMoney()` for all currency display
+- `src/hooks/useRetirementGoal.ts` - shared goal calculation hook
+- `src/lib/validation.ts` - Zod schemas for YAML import and form validation
