@@ -92,7 +92,7 @@ Every concern from the codebase audit is resolved — no correctness bugs, no du
 |----------|-----------|---------|
 | Context providers over Redux/Zustand | Lightweight, native React, sufficient for this app's state complexity | — Pending |
 | vitest over jest | Native Vite integration, faster, zero-config with Vite | — Pending |
-| Runtime validation (manual) over Zod | Avoid adding dependency for ~5 validation checks on YAML import | — Pending |
+| Zod 4 for YAML import validation | Research found 20+ fields across nested objects makes manual validation error-prone; Zod 4 gives type inference + clear error messages. See STACK.md Section 4. | — Pending |
 | CSS utilities over animation library | App only uses fadeInUp — not worth a dependency | — Pending |
 | Keep Recharts | Only chart library, lazy-load to address bundle size | — Pending |
 
