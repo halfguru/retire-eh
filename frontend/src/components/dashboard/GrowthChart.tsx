@@ -1,15 +1,7 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import type { ProjectionDataPoint } from '@/hooks/useProjection'
-import type { Person } from '@/hooks/usePeopleManagement'
-
-function formatCurrency(value: number): string {
-  if (value >= 1000000) {
-    return `$${(value / 1000000).toFixed(1)}M`
-  } else if (value >= 1000) {
-    return `$${(value / 1000).toFixed(0)}k`
-  }
-  return `$${value.toFixed(0)}`
-}
+import type { ProjectionDataPoint } from '@/types/household'
+import type { Person } from '@/types/household'
+import { formatCompactMoney, formatMoney } from '@/lib/formatting'
 
 interface GrowthChartProps {
   isDarkMode: boolean
@@ -23,7 +15,7 @@ export function GrowthChart({ isDarkMode, portfolioView, selectedPortfolioPerson
   if (yearsToRetirement <= 0 || currentProjectionData.length === 0) return null
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-900 rounded-lg shadow-lg border border-slate-200 dark:border-gray-700 p-6" style={{ animation: 'fadeInUp 0.5s ease-out 0.3s forwards', opacity: 0 }}>
+    <div className="animate-fade-in-up-delay-3 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-900 rounded-lg shadow-lg border border-slate-200 dark:border-gray-700 p-6">
       <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
         📈 Growth Projection {portfolioView === 'individual' && selectedPortfolioPerson && `(${selectedPortfolioPerson.name})`}
       </h2>
@@ -54,12 +46,12 @@ export function GrowthChart({ isDarkMode, portfolioView, selectedPortfolioPerson
             <YAxis
               stroke={isDarkMode ? '#9ca3af' : '#6b7280'}
               tick={{ fontSize: 12, fill: isDarkMode ? '#d1d5db' : '#6b7280' }}
-              tickFormatter={(value) => formatCurrency(value)}
+              tickFormatter={(value) => formatCompactMoney(value)}
               padding={{ top: 10, bottom: 20 }}
             />
             <Tooltip
               contentStyle={{ backgroundColor: isDarkMode ? '#1f2937' : '#ffffff', border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`, borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-              formatter={(value: number | undefined, name?: string) => [`$${(value ?? 0).toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`, name || '']}
+              formatter={(value: number | undefined, name?: string) => [`$${formatMoney(value ?? 0)}`, name ?? ''] as const}
               labelFormatter={(label) => `Age ${label}`}
               labelStyle={{ color: isDarkMode ? '#f3f4f6' : '#374151', fontWeight: 500 }}
             />

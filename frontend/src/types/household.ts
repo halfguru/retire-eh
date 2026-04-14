@@ -1,3 +1,7 @@
+export type { Account, Person } from './person'
+export type { ProjectionDataPoint } from './projection'
+export type { PlanAssumptions, RetirementPlan } from './plan'
+
 export interface HouseholdConfig {
   retirement_age: number
   expected_annual_income: number

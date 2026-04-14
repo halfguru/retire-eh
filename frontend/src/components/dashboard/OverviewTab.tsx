@@ -3,106 +3,69 @@ import { ViewSelector } from './ViewSelector'
 import { PortfolioCard } from './PortfolioCard'
 import { RetirementProjectionCard } from './RetirementProjectionCard'
 import { GoalsCard } from './GoalsCard'
-import type { Person, Account } from '@/hooks/usePeopleManagement'
-import type { ProjectionDataPoint } from '@/hooks/useProjection'
+import { usePeople } from '@/contexts/PeopleContext'
+import { useAssumptions } from '@/contexts/AssumptionsContext'
+import { useProjectionContext } from '@/contexts/ProjectionContext'
 
-interface OverviewTabProps {
-  people: Person[]
-  currentProjectionData: ProjectionDataPoint[]
-  realProjectionData: ProjectionDataPoint[]
-  totalPortfolio: number
-  selectedPersonPortfolio: number
-  allAccounts: Account[]
-  selectedPersonAccounts: Account[]
-  selectedPortfolioPerson: Person | undefined
-  portfolioPersonId: string | null
-  onPersonChange: (id: string | null) => void
-  yearsToRetirement: number
-  totalAnnualIncome: number
-  totalAnnualPension: number
-  replacementRate: number
-  withdrawalRate: number
-  expectedReturn: number
-  inflationRate: number
-  currentAnnualContributions: number
-  householdRetirementAge: number
-}
+export function OverviewTab() {
+  const { people } = usePeople()
+  const assumptions = useAssumptions()
+  const projection = useProjectionContext()
 
-export function OverviewTab({
-  people,
-  currentProjectionData,
-  realProjectionData,
-  totalPortfolio,
-  selectedPersonPortfolio,
-  allAccounts,
-  selectedPersonAccounts,
-  selectedPortfolioPerson,
-  portfolioPersonId,
-  onPersonChange,
-  yearsToRetirement,
-  totalAnnualIncome,
-  totalAnnualPension,
-  replacementRate,
-  withdrawalRate,
-  expectedReturn,
-  inflationRate,
-  currentAnnualContributions,
-  householdRetirementAge
-}: OverviewTabProps) {
-  const portfolioView = portfolioPersonId ? 'individual' : 'combined'
+  const allAccounts = people.flatMap(p => p.accounts)
 
   return (
     <div className="space-y-6">
       <SummaryCard
-        currentProjectionData={realProjectionData}
-        annualIncome={totalAnnualIncome}
-        annualPension={totalAnnualPension}
-        replacementRate={replacementRate}
-        withdrawalRate={withdrawalRate}
-        yearsToRetirement={yearsToRetirement}
-        expectedReturn={expectedReturn}
-        inflationRate={inflationRate}
-        currentAnnualContributions={currentAnnualContributions}
-        currentPortfolio={totalPortfolio}
-        householdRetirementAge={householdRetirementAge}
+        currentProjectionData={projection.realProjectionData}
+        annualIncome={projection.totalAnnualIncome}
+        annualPension={projection.totalAnnualPension}
+        replacementRate={assumptions.replacementRate}
+        withdrawalRate={assumptions.withdrawalRate}
+        yearsToRetirement={projection.yearsToRetirement}
+        expectedReturn={assumptions.expectedReturn}
+        inflationRate={assumptions.inflationRate}
+        currentAnnualContributions={projection.totalAnnualContributions}
+        currentPortfolio={projection.totalPortfolio}
+        householdRetirementAge={projection.householdRetirementAge}
       />
 
       <ViewSelector
-        selectedPortfolioPersonId={portfolioPersonId}
+        selectedPortfolioPersonId={projection.portfolioPersonId}
         people={people}
-        onPersonChange={onPersonChange}
+        onPersonChange={projection.setPortfolioPersonId}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         <PortfolioCard
-          portfolioView={portfolioView}
-          totalPortfolio={totalPortfolio}
-          selectedPersonPortfolio={selectedPersonPortfolio}
+          portfolioView={projection.portfolioView}
+          totalPortfolio={projection.totalPortfolio}
+          selectedPersonPortfolio={projection.selectedPersonPortfolio}
           allAccounts={allAccounts}
-          selectedPersonAccounts={selectedPersonAccounts}
-          selectedPortfolioPerson={selectedPortfolioPerson}
+          selectedPersonAccounts={projection.selectedPersonAccounts}
+          selectedPortfolioPerson={projection.selectedPortfolioPerson}
         />
 
         <RetirementProjectionCard
-          portfolioView={portfolioView}
-          currentProjectionData={currentProjectionData}
-          totalPortfolio={totalPortfolio}
-          selectedPersonPortfolio={selectedPersonPortfolio}
-          yearsToRetirement={yearsToRetirement}
+          portfolioView={projection.portfolioView}
+          currentProjectionData={projection.currentProjectionData}
+          totalPortfolio={projection.totalPortfolio}
+          selectedPersonPortfolio={projection.selectedPersonPortfolio}
+          yearsToRetirement={projection.yearsToRetirement}
         />
       </div>
 
       <GoalsCard
-        currentProjectionData={realProjectionData}
-        annualIncome={totalAnnualIncome}
-        annualPension={totalAnnualPension}
-        replacementRate={replacementRate}
-        withdrawalRate={withdrawalRate}
-        yearsToRetirement={yearsToRetirement}
-        expectedReturn={expectedReturn}
-        inflationRate={inflationRate}
-        currentAnnualContributions={currentAnnualContributions}
-        currentPortfolio={totalPortfolio}
+        currentProjectionData={projection.realProjectionData}
+        annualIncome={projection.totalAnnualIncome}
+        annualPension={projection.totalAnnualPension}
+        replacementRate={assumptions.replacementRate}
+        withdrawalRate={assumptions.withdrawalRate}
+        yearsToRetirement={projection.yearsToRetirement}
+        expectedReturn={assumptions.expectedReturn}
+        inflationRate={assumptions.inflationRate}
+        currentAnnualContributions={projection.totalAnnualContributions}
+        currentPortfolio={projection.totalPortfolio}
       />
     </div>
   )

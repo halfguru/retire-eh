@@ -1,3 +1,5 @@
+import { formatMoney } from '@/lib/formatting'
+
 interface IncomeBreakdownCardProps {
   portfolioAtRetirement: number
   annualPension: number
@@ -5,8 +7,8 @@ interface IncomeBreakdownCardProps {
   retirementAge: number
 }
 
-const OAS_MAX_2024 = 8296 // Approximate max OAS per year at age 65 (2024)
-const CPP_AVERAGE_2024 = 9600 // Approximate average CPP per year (2024)
+const OAS_MAX_2024 = 8296
+const CPP_AVERAGE_2024 = 9600
 
 export function IncomeBreakdownCard({
   portfolioAtRetirement,
@@ -49,7 +51,7 @@ export function IncomeBreakdownCard({
   ].filter(source => source.amount > 0 || source.name === 'Portfolio Withdrawal')
 
   return (
-    <div style={{ animation: 'fadeInUp 0.5s ease-out forwards', opacity: 0 }} className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-900 rounded-lg shadow-lg border border-slate-200 dark:border-gray-700 p-4 sm:p-6">
+    <div className="animate-fade-in-up bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-900 rounded-lg shadow-lg border border-slate-200 dark:border-gray-700 p-4 sm:p-6">
       <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white mb-4 sm:mb-6">
         💰 Retirement Income Breakdown
       </h2>
@@ -70,7 +72,7 @@ export function IncomeBreakdownCard({
             </div>
             <div className="text-right">
               <div className="font-semibold text-gray-900 dark:text-white">
-                ${source.amount.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                ${formatMoney(source.amount)}
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-400">
                 /year
@@ -85,13 +87,13 @@ export function IncomeBreakdownCard({
           <div className="text-center p-4 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg">
             <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Annual Income</div>
             <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
-              ${totalAnnualIncome.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+              ${formatMoney(totalAnnualIncome)}
             </div>
           </div>
           <div className="text-center p-4 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg">
             <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Monthly Income</div>
             <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-              ${totalMonthlyIncome.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+              ${formatMoney(totalMonthlyIncome)}
             </div>
           </div>
         </div>

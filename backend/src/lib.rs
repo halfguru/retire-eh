@@ -1,5 +1,5 @@
 pub mod calculations;
-mod models;
+pub mod models;
 
 use wasm_bindgen::prelude::*;
 
@@ -74,6 +74,7 @@ impl RetirementCalculator {
         contributions_js: JsValue,
         assumptions_js: JsValue,
         current_age: u32,
+        current_year: u32,
     ) -> Result<JsValue, JsValue> {
         let household_config: HouseholdConfig = serde_wasm_bindgen::from_value(household_config_js)
             .map_err(|e| JsValue::from_str(&format!("Failed to parse household config: {}", e)))?;
@@ -93,6 +94,7 @@ impl RetirementCalculator {
             &contributions,
             &assumptions,
             current_age,
+            current_year,
         );
 
         serde_wasm_bindgen::to_value(&projections)

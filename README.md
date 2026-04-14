@@ -1,4 +1,4 @@
-# 🍁 Retire, Eh?
+# Retire, Eh? 🍁
 
 [![CI](https://github.com/halfguru/retire-eh/actions/workflows/ci.yml/badge.svg)](https://github.com/halfguru/retire-eh/actions/workflows/ci.yml)
 [![Deploy](https://github.com/halfguru/retire-eh/actions/workflows/deploy.yml/badge.svg)](https://github.com/halfguru/retire-eh/actions/workflows/deploy.yml)
@@ -6,53 +6,53 @@
 
 > Plan your Canadian retirement, eh?
 
-A household-first retirement planner for Canadians. Plan your RRSP, TFSA, and CPP strategy with conservative projections and transparent calculations. All calculations happen in your browser — no accounts, no data collection, complete privacy.
+A household-first retirement planner for Canadians. Build an RRSP, TFSA, and CPP strategy with conservative projections and transparent math. Everything runs locally in your browser.
 
-**[🔗 Live Demo](https://halfguru.github.io/retire-eh/)**
+![Screenshot](frontend/public/screenshot.png)
 
-## ✨ Features
+**[Live Demo](https://halfguru.github.io/retire-eh/)**
 
-- **🏠 Household-first dashboard** — Combined progress, not siloed by individual
-- **🇨🇦 Canadian-focused** — Built for RRSP, TFSA, and CPP planning
-- **📊 Clear projections** — Visualize your portfolio growth over time
-- **🎯 Goal tracking** — See if you're on track for your retirement income target
-- **🔒 Privacy-first** — All calculations run locally in your browser
-- **⚡ Fast** — Core calculations powered by Rust/WebAssembly
+## Features
 
-## 🚀 Quick Start
+- **Household-first dashboard** with combined progress across people
+- **Canadian-focused**: RRSP, TFSA, and CPP planning built in
+- **Visual projections** for portfolio growth over time
+- **Goal tracking** against your retirement income target
+- **Private by default**: all calculations run in-browser
+- **Fast**: core math powered by Rust/WebAssembly
+
+## Quick Start
 
 ```bash
-# Clone the repository
 git clone https://github.com/halfguru/retire-eh.git
 cd retire-eh
 
-# Install frontend dependencies
-cd frontend && npm install
+# Build WASM and copy artifacts to frontend
+cd backend && wasm-pack build --target web && cd ..
+cp backend/pkg/retirement_core_bg.wasm frontend/public/wasm/
+cp backend/pkg/retirement_core.js frontend/src/lib/
+cp backend/pkg/retirement_core.d.ts frontend/src/lib/
 
-# Start development server
+cd frontend && npm install
 npm run dev
 ```
 
 Open http://localhost:5173 to view the app.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
-| **Frontend** | React + TypeScript + Tailwind CSS |
-| **Charts** | Recharts |
-| **Calculations** | Rust compiled to WebAssembly (WASM) |
+| Frontend | React + TypeScript + Tailwind CSS |
+| Charts | Recharts |
+| Calculations | Rust compiled to WebAssembly |
 
-The Rust core provides:
-- Single source of truth for all financial calculations
-- Deterministic, testable logic
-- High performance in the browser
+The Rust core keeps all financial logic in one place: deterministic, testable, and fast in the browser.
 
-## 📖 Development
+## Development
 
-### Build Commands
+### Frontend
 
-**Frontend:**
 ```bash
 npm run dev        # Start dev server
 npm run build      # Production build
@@ -60,7 +60,8 @@ npm run typecheck  # TypeScript check
 npm run lint       # ESLint
 ```
 
-**Backend (Rust/WASM):**
+### Backend (Rust/WASM)
+
 ```bash
 cd backend
 cargo build        # Build Rust
@@ -71,45 +72,25 @@ wasm-pack build --target web  # Build WASM
 
 ### AI-Assisted Development
 
-This project includes [OpenCode](https://opencode.ai) configuration:
+See [AGENTS.md](./AGENTS.md) for build commands and conventions.
 
-| Command | Description |
-|---------|-------------|
-| `/feature <name>` | Full feature workflow |
-| `/review` | Multi-specialist code review |
-| `/prepare-pr` | PR with WASM validation |
+## Design Philosophy
 
-See [AGENTS.md](./AGENTS.md) for detailed build commands and conventions.
-
-## 🎯 Design Philosophy
-
-### Core Principles
-
-- **Conservative assumptions** — Realistic, not optimistic projections
-- **Explicit explanations** — Show the math, don't hide it
-- **Household-first approach** — Evaluate savings jointly
-
-### Canadian Retirement Philosophy
+- **Conservative assumptions**: realistic projections over optimistic ones
+- **Explicit explanations**: the math is always visible
+- **Household-first approach**: savings evaluated jointly across partners
 
 > One household balance sheet, multiple tax wrappers.
 
-- Retirement success is a **household outcome**
-- Savings evaluated jointly, regardless of who contributes
-- Strategic allocation between RRSP and TFSA based on marginal tax rates
+Retirement success is a household outcome. Savings get evaluated jointly regardless of who contributes, with strategic allocation between RRSP and TFSA based on marginal tax rates.
 
-## 🚫 Non-Goals (For Now)
+## What This Doesn't Do
 
-- Bank account linking
-- Real-time market data
-- Complex tax optimization engines
-- Monte Carlo simulations
+- Bank account linking or real-time market data
+- Complex tax optimization engines or Monte Carlo simulations
 - FIRE or early-retirement evangelism
 - Non-Canadian retirement accounts (401k, IRA, etc.)
 
-## 📄 License
+## License
 
-This project is licensed under the MIT License — see [LICENSE](LICENSE) for details.
-
----
-
-*Built with ❤️ in Canada using Rust (WASM), React, and TypeScript*
+MIT. See [LICENSE](LICENSE) for details.

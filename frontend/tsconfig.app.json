@@ -31,5 +31,5 @@
     "noUncheckedSideEffectImports": true
   },
   "include": ["src"],
-  "exclude": ["src/lib/financial_math_wasm.ts"]
+  "exclude": ["src/lib/financial_math_wasm.ts", "src/test"]
 }

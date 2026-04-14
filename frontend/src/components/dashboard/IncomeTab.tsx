@@ -1,30 +1,20 @@
 import { IncomeBreakdownCard } from './IncomeBreakdownCard'
-import type { ProjectionDataPoint } from '@/hooks/useProjection'
+import { getPortfolioAtRetirement } from '@/lib/calculations'
+import { useProjectionContext } from '@/contexts/ProjectionContext'
+import { useAssumptions } from '@/contexts/AssumptionsContext'
 
-interface IncomeTabProps {
-  currentProjectionData: ProjectionDataPoint[]
-  annualPension: number
-  withdrawalRate: number
-  householdRetirementAge: number
-}
-
-export function IncomeTab({
-  currentProjectionData,
-  annualPension,
-  withdrawalRate,
-  householdRetirementAge
-}: IncomeTabProps) {
-  const portfolioAtRetirement = currentProjectionData.length > 0
-    ? currentProjectionData[currentProjectionData.length - 1].Total
-    : 0
+export function IncomeTab() {
+  const projection = useProjectionContext()
+  const assumptions = useAssumptions()
+  const portfolioAtRetirement = getPortfolioAtRetirement(projection.realProjectionData)
 
   return (
     <div className="space-y-6">
       <IncomeBreakdownCard
         portfolioAtRetirement={portfolioAtRetirement}
-        annualPension={annualPension}
-        withdrawalRate={withdrawalRate}
-        retirementAge={householdRetirementAge}
+        annualPension={projection.totalAnnualPension}
+        withdrawalRate={assumptions.withdrawalRate}
+        retirementAge={projection.householdRetirementAge}
       />
 
       <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-900 rounded-lg shadow-lg border border-slate-200 dark:border-gray-700 p-4 sm:p-6">
@@ -34,7 +24,7 @@ export function IncomeTab({
         <div className="space-y-4 text-sm text-gray-600 dark:text-gray-400">
           <div>
             <strong className="text-gray-800 dark:text-gray-200">Portfolio Withdrawal:</strong>{' '}
-            The {withdrawalRate}% safe withdrawal rate is a common rule of thumb for sustainable retirement income from investments.
+            The {assumptions.withdrawalRate}% safe withdrawal rate is a common rule of thumb for sustainable retirement income from investments.
           </div>
           <div>
             <strong className="text-gray-800 dark:text-gray-200">CPP (Canada Pension Plan):</strong>{' '}

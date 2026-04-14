@@ -1,34 +1,9 @@
 import yaml from 'js-yaml'
-import type { Person } from '@/hooks/usePeopleManagement'
+import type { Person } from '@/types/household'
+import type { PlanAssumptions, RetirementPlan } from '@/types/household'
+import { validateYamlImport } from '@/lib/validation'
 
-export interface PlanAssumptions {
-  expectedReturn: number
-  inflationRate: number
-  replacementRate: number
-  withdrawalRate: number
-  showRealValues: boolean
-}
-
-export interface PersonData {
-  id: string
-  name: string
-  currentAge: number
-  retirementAge: number
-  annualIncome: number
-  annualPension: number
-  accounts: Array<{
-    id: string
-    type: 'RRSP' | 'TFSA'
-    balance: number
-    annualContribution: number
-  }>
-}
-
-export interface RetirementPlan {
-  version: string
-  assumptions: PlanAssumptions
-  people: PersonData[]
-}
+export type { PlanAssumptions, RetirementPlan } from '@/types/household'
 
 export function exportToYAML(
   assumptions: PlanAssumptions,
@@ -52,11 +27,16 @@ export function exportToYAML(
 
 export function importFromYAML(yamlString: string): RetirementPlan | null {
   try {
-    const parsed = yaml.load(yamlString) as RetirementPlan
-    if (!parsed || !parsed.assumptions || !parsed.people) {
+    const parsed = yaml.load(yamlString)
+    if (!parsed || typeof parsed !== 'object') {
       return null
     }
-    return parsed
+    const result = validateYamlImport(parsed)
+    if (!result.success) {
+      console.error('YAML validation failed:', result.errors)
+      return null
+    }
+    return result.data as RetirementPlan
   } catch (error) {
     console.error('Failed to parse YAML:', error)
     return null

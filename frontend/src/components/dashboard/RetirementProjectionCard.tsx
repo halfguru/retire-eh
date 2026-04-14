@@ -1,4 +1,6 @@
-import type { ProjectionDataPoint } from '@/hooks/useProjection'
+import type { ProjectionDataPoint } from '@/types/household'
+import { getPortfolioAtRetirement } from '@/lib/calculations'
+import { formatMoney } from '@/lib/formatting'
 
 interface RetirementProjectionCardProps {
   portfolioView: 'combined' | 'individual'
@@ -17,35 +19,35 @@ export function RetirementProjectionCard({
 }: RetirementProjectionCardProps) {
   if (yearsToRetirement <= 0) return null
 
-  const portfolioAtRetirement = currentProjectionData.length > 0
-    ? currentProjectionData[currentProjectionData.length - 1].Total
-    : 0
+  const portfolioAtRetirement = getPortfolioAtRetirement(currentProjectionData)
+  const lastPoint = currentProjectionData.length > 0 ? currentProjectionData[currentProjectionData.length - 1] : null
+  const basePortfolio = portfolioView === 'combined' ? totalPortfolio : selectedPersonPortfolio
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-900 rounded-lg shadow-lg border border-slate-200 dark:border-gray-700 p-6" style={{ animation: 'fadeInUp 0.5s ease-out 0.15s forwards', opacity: 0 }}>
+    <div className="animate-fade-in-up-delay-1 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-900 rounded-lg shadow-lg border border-slate-200 dark:border-gray-700 p-6">
       <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
         🎓 Portfolio at Retirement
       </h2>
       <div className="text-4xl font-bold text-emerald-600 dark:text-emerald-400">
-        ${portfolioAtRetirement.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+        ${formatMoney(portfolioAtRetirement)}
       </div>
       <div className="mt-4 space-y-2 text-sm">
         <div className="text-gray-500 dark:text-gray-400">
-          Growth: ${((portfolioAtRetirement - (portfolioView === 'combined' ? totalPortfolio : selectedPersonPortfolio))).toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ({((portfolioAtRetirement / (portfolioView === 'combined' ? totalPortfolio : selectedPersonPortfolio) - 1) * 100).toFixed(1)}%)
+          Growth: ${formatMoney(portfolioAtRetirement - basePortfolio)} ({((portfolioAtRetirement / basePortfolio - 1) * 100).toFixed(1)}%)
         </div>
-        {currentProjectionData.length > 0 && (
+        {lastPoint && (
           <div className="text-amber-600 dark:text-amber-400">
-            Total: ${(currentProjectionData[currentProjectionData.length - 1].Total ?? 0).toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            Total: ${formatMoney(lastPoint.Total ?? 0)}
           </div>
         )}
-        {currentProjectionData.length > 0 && currentProjectionData[currentProjectionData.length - 1].RRSP !== undefined && (
+        {lastPoint?.RRSP !== undefined && (
           <div className="text-indigo-600 dark:text-indigo-400">
-            RRSP: ${(currentProjectionData[currentProjectionData.length - 1].RRSP ?? 0).toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            RRSP: ${formatMoney(lastPoint.RRSP ?? 0)}
           </div>
         )}
-        {currentProjectionData.length > 0 && currentProjectionData[currentProjectionData.length - 1].TFSA !== undefined && (
+        {lastPoint?.TFSA !== undefined && (
           <div className="text-emerald-600 dark:text-emerald-400">
-            TFSA: ${(currentProjectionData[currentProjectionData.length - 1].TFSA ?? 0).toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            TFSA: ${formatMoney(lastPoint.TFSA ?? 0)}
           </div>
         )}
       </div>

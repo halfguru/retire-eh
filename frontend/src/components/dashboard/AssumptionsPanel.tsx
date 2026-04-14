@@ -22,7 +22,7 @@ export function AssumptionsPanel({
   setWithdrawalRate
 }: AssumptionsPanelProps) {
   return (
-    <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 p-4 h-fit">
+    <div className="animate-fade-in-up-delay-1 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 p-4 h-fit">
       <div className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-3">Assumptions</div>
       <div className="grid grid-cols-2 gap-4">
         <div>

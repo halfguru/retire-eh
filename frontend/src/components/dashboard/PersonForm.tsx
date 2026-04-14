@@ -1,69 +1,9 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
-import type { Person } from '@/hooks/usePeopleManagement'
+import { useState, useEffect, useRef } from 'react'
+import type { Person } from '@/types/household'
 import { InfoTooltip } from './InfoTooltip'
 import { AccountCard } from './AccountCard'
-import { formatCurrency } from '@/hooks/usePeopleManagement'
-
-function NumberInput({ value, onChange, step, min }: { value: number, onChange: (val: number) => void, step: number, min?: number }) {
-  const [focused, setFocused] = useState(false)
-
-  const displayValue = useMemo(() => {
-    if (!focused) {
-      return value === 0 ? '' : formatCurrency(value)
-    } else {
-      return value === 0 ? '' : String(value)
-    }
-  }, [value, focused])
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/,/g, '')
-    const num = parseFloat(raw) || 0
-    if (min === undefined || num >= min) {
-      onChange(num)
-    }
-  }
-
-  return (
-    <div className="relative">
-      <input
-        type="text"
-        step={step}
-        value={displayValue}
-        onChange={handleChange}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        autoComplete="off"
-        data-lpignore="true"
-        className="number-input w-full px-2.5 py-1.5 pr-7 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded border border-gray-300 dark:border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
-        style={{ caretColor: '#1f2937' }}
-      />
-      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-xs">$</span>
-      <style>{`
-        .number-input::-webkit-autofill,
-        .number-input:-webkit-autofill,
-        .number-input::-webkit-autofill:hover,
-        .number-input::-webkit-autofill:focus {
-          -webkit-text-fill-color: #111827;
-          -webkit-box-shadow: 0 0 0 30px #fff inset;
-          background-color: #fff !important;
-          background-image: none !important;
-          transition: background-color 5000s ease-in-out 0s;
-        }
-        @media (prefers-color-scheme: dark) {
-          .number-input::-webkit-autofill,
-          .number-input:-webkit-autofill,
-          .number-input::-webkit-autofill:hover,
-          .number-input::-webkit-autofill:focus {
-            -webkit-text-fill-color: #f3f4f6;
-            -webkit-box-shadow: 0 0 0 30px #374151 inset;
-            background-color: #374151 !important;
-            background-image: none !important;
-          }
-        }
-      `}</style>
-    </div>
-  )
-}
+import { NumberInput } from '@/components/ui/NumberInput'
+import { validateAge, validateRetirementAge } from '@/lib/validation'
 
 interface PersonFormProps {
   people: Person[]
@@ -165,8 +105,15 @@ export function PersonForm({
             max={100}
             value={person.currentAge}
             onChange={(e) => onUpdatePerson(person.id, 'currentAge', e.target.valueAsNumber)}
-            className="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+            className={`w-full px-2.5 py-1.5 text-sm border rounded bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-1 ${
+              validateAge(person.currentAge)
+                ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500/20'
+                : 'border-gray-300 dark:border-gray-600 focus:border-indigo-500 focus:ring-indigo-500/20'
+            }`}
           />
+          {validateAge(person.currentAge) && (
+            <p className="text-xs text-red-500 dark:text-red-400 mt-0.5">{validateAge(person.currentAge)}</p>
+          )}
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Retirement Age</label>
@@ -176,12 +123,19 @@ export function PersonForm({
             max={100}
             value={person.retirementAge}
             onChange={(e) => onUpdatePerson(person.id, 'retirementAge', e.target.valueAsNumber)}
-            className="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20"
+            className={`w-full px-2.5 py-1.5 text-sm border rounded bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-1 ${
+              validateRetirementAge(person.retirementAge, person.currentAge)
+                ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500/20'
+                : 'border-gray-300 dark:border-gray-600 focus:border-emerald-500 focus:ring-emerald-500/20'
+            }`}
           />
+          {validateRetirementAge(person.retirementAge, person.currentAge) && (
+            <p className="text-xs text-red-500 dark:text-red-400 mt-0.5">{validateRetirementAge(person.retirementAge, person.currentAge)}</p>
+          )}
         </div>
       </div>
 
-      {person.retirementAge <= person.currentAge && (
+      {person.retirementAge <= person.currentAge && !validateRetirementAge(person.retirementAge, person.currentAge) && (
         <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-1.5 rounded border border-amber-200 dark:border-amber-800">
           Retirement age must be greater than current age
         </div>
