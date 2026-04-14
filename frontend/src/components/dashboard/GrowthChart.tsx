@@ -51,7 +51,7 @@ export function GrowthChart({ isDarkMode, portfolioView, selectedPortfolioPerson
             />
             <Tooltip
               contentStyle={{ backgroundColor: isDarkMode ? '#1f2937' : '#ffffff', border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`, borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-              formatter={(value: number | undefined, name?: string) => [`$${formatMoney(value ?? 0)}`, name || '']}
+              formatter={(value: number | undefined, name?: string) => [`$${formatMoney(value ?? 0)}`, name ?? ''] as const}
               labelFormatter={(label) => `Age ${label}`}
               labelStyle={{ color: isDarkMode ? '#f3f4f6' : '#374151', fontWeight: 500 }}
             />
