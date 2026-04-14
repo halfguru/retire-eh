@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Shared Code Extraction** - Consolidate duplicated types, utilities, components, and CSS
 - [ ] **Phase 4: Context Architecture** - Decompose App.tsx state into React Context providers
 - [ ] **Phase 5: Testing Expansion** - Integration tests for WASM bridge and context interactions
-- [ ] **Phase 6: Production Optimization & Polish** - Lazy loading, cache busting, version tracking, SPA routing
+- [x] **Phase 6: Production Optimization & Polish** - Lazy loading, cache busting, version tracking, SPA routing
 
 ## Phase Details
 
@@ -119,9 +119,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 06-01: Lazy-load Recharts/GrowthChart via React.lazy + Suspense (PERF-01)
-- [ ] 06-02: Add WASM cache busting with content hash and version tracking (PERF-02, PERF-03)
-- [ ] 06-03: Add 404.html redirect fallback for GitHub Pages SPA routing (PERF-04)
+- [x] 06-01: Lazy-load Recharts/GrowthChart via React.lazy + Suspense (PERF-01)
+- [x] 06-02: Add WASM cache busting with content hash and version tracking (PERF-02, PERF-03)
+- [x] 06-03: Add 404.html redirect fallback for GitHub Pages SPA routing (PERF-04)
 
 ## Progress
 
@@ -135,4 +135,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Shared Code Extraction | 4/4 | ✅ Done | 2026-04-14 |
 | 4. Context Architecture | 4/4 | ✅ Done | 2026-04-14 |
 | 5. Testing Expansion | 2/2 | ✅ Done | 2026-04-14 |
-| 6. Production Optimization & Polish | 0/3 | Not started | - |
+| 6. Production Optimization & Polish | 3/3 | ✅ Done | 2026-04-14 |

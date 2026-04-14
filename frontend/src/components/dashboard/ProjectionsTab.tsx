@@ -1,7 +1,9 @@
-import { GrowthChart } from './GrowthChart'
+import { lazy, Suspense } from 'react'
 import { useProjectionContext } from '@/contexts/ProjectionContext'
 import { useAssumptions } from '@/contexts/AssumptionsContext'
 import { useDarkMode } from '@/hooks/useDarkMode'
+
+const GrowthChart = lazy(() => import('./GrowthChart').then(m => ({ default: m.GrowthChart })))
 
 export function ProjectionsTab() {
   const [isDarkMode] = useDarkMode()
@@ -10,13 +12,15 @@ export function ProjectionsTab() {
 
   return (
     <div className="space-y-6">
-      <GrowthChart
-        isDarkMode={isDarkMode}
-        portfolioView={projection.portfolioView}
-        selectedPortfolioPerson={projection.selectedPortfolioPerson}
-        currentProjectionData={projection.currentProjectionData}
-        yearsToRetirement={projection.yearsToRetirement}
-      />
+      <Suspense fallback={<div className="h-96 flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>}>
+        <GrowthChart
+          isDarkMode={isDarkMode}
+          portfolioView={projection.portfolioView}
+          selectedPortfolioPerson={projection.selectedPortfolioPerson}
+          currentProjectionData={projection.currentProjectionData}
+          yearsToRetirement={projection.yearsToRetirement}
+        />
+      </Suspense>
 
       <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-900 rounded-lg shadow-lg border border-slate-200 dark:border-gray-700 p-4 sm:p-6">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3">

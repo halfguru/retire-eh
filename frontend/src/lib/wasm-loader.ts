@@ -1,6 +1,8 @@
 import init, { RetirementCalculator } from './retirement_core.js'
 import type { RetirementCalculator as RetirementCalculatorType } from './retirement_core.d.ts'
 
+declare const __APP_VERSION__: string
+
 let wasmInitialized = false
 let wasmError: string | null = null
 let calculator: RetirementCalculatorType | null = null
@@ -15,7 +17,8 @@ export async function initWasm() {
   }
 
   try {
-    await init('/wasm/retirement_core_bg.wasm')
+    const wasmUrl = `/wasm/retirement_core_bg.wasm?v=${__APP_VERSION__}`
+    await init(wasmUrl)
     calculator = new RetirementCalculator()
     wasmInitialized = true
     return calculator
