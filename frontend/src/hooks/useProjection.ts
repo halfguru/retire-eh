@@ -1,14 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { initWasm, getCalculator } from '@/lib/wasm-loader'
-import type { Account } from './usePeopleManagement'
-
-export interface ProjectionDataPoint {
-  year: number
-  age: number
-  RRSP?: number
-  TFSA?: number
-  Total: number
-}
+import type { Account } from '@/types/household'
+import type { ProjectionDataPoint } from '@/types/household'
 
 export function useProjection() {
   const [wasmLoaded, setWasmLoaded] = useState(false)

@@ -1,4 +1,5 @@
-import type { Person, Account } from '@/hooks/usePeopleManagement'
+import type { Person, Account } from '@/types/household'
+import { formatMoney } from '@/lib/formatting'
 
 interface PortfolioCardProps {
   portfolioView: 'combined' | 'individual'
@@ -17,13 +18,15 @@ export function PortfolioCard({
   selectedPersonAccounts,
   selectedPortfolioPerson
 }: PortfolioCardProps) {
+  const displayPortfolio = portfolioView === 'combined' ? totalPortfolio : selectedPersonPortfolio
+
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-900 rounded-lg shadow-lg border border-slate-200 dark:border-gray-700 p-6" style={{ animation: 'fadeInUp 0.5s ease-out forwards', opacity: 0 }}>
+    <div className="animate-fade-in-up bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-900 rounded-lg shadow-lg border border-slate-200 dark:border-gray-700 p-6">
       <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
         💰 Current Portfolio
       </h2>
       <div className="text-4xl font-bold text-emerald-600 dark:text-emerald-400">
-        ${portfolioView === 'combined' ? totalPortfolio.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : selectedPersonPortfolio.toLocaleString('en-CA', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+        ${formatMoney(displayPortfolio)}
       </div>
       <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
         {portfolioView === 'combined'

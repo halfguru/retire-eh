@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { exportToYAML, importFromYAML } from '@/lib/yaml-utils'
-import type { Person } from '@/hooks/usePeopleManagement'
-import type { PlanAssumptions } from '@/lib/yaml-utils'
+import type { Person } from '@/types/household'
+import type { PlanAssumptions } from '@/types/household'
 
 const mockAssumptions: PlanAssumptions = {
   expectedReturn: 7,

@@ -1,26 +1,5 @@
 import { useState, useMemo } from 'react'
-
-export function formatCurrency(value: number | string): string {
-  const num = typeof value === 'string' ? parseFloat(value.replace(/,/g, '')) || 0 : value
-  return num.toLocaleString('en-CA')
-}
-
-export interface Account {
-  id: string
-  type: 'RRSP' | 'TFSA'
-  balance: number
-  annualContribution: number
-}
-
-export interface Person {
-  id: string
-  name: string
-  currentAge: number
-  retirementAge: number
-  annualIncome: number
-  annualPension: number
-  accounts: Account[]
-}
+import type { Person } from '@/types/household'
 
 const defaultPerson: Person = {
   id: '1',

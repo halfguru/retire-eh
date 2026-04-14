@@ -50,6 +50,41 @@
   color: white;
 }
 
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-up-delay-1 {
+  animation: fadeInUp 0.5s ease-out 0.15s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-up-delay-3 {
+  animation: fadeInUp 0.5s ease-out 0.35s forwards;
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up,
+  .animate-fade-in-up-delay-1,
+  .animate-fade-in-up-delay-3 {
+    animation: none;
+    opacity: 1;
+  }
+}
+
 html {
   height: 100%;
 }
@@ -81,4 +116,27 @@ input[type=number]::-webkit-outer-spin-button {
 
 input[type=number] {
   -moz-appearance: textfield;
+}
+
+.number-input::-webkit-autofill,
+.number-input:-webkit-autofill,
+.number-input::-webkit-autofill:hover,
+.number-input::-webkit-autofill:focus {
+  -webkit-text-fill-color: #111827;
+  -webkit-box-shadow: 0 0 0 30px #fff inset;
+  background-color: #fff !important;
+  background-image: none !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+@media (prefers-color-scheme: dark) {
+  .number-input::-webkit-autofill,
+  .number-input:-webkit-autofill,
+  .number-input::-webkit-autofill:hover,
+  .number-input::-webkit-autofill:focus {
+    -webkit-text-fill-color: #f3f4f6;
+    -webkit-box-shadow: 0 0 0 30px #374151 inset;
+    background-color: #374151 !important;
+    background-image: none !important;
+  }
 }

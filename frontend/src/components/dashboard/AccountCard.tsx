@@ -1,49 +1,5 @@
-import { useState, useMemo } from 'react'
-import type { Account } from '@/hooks/usePeopleManagement'
-import { formatCurrency } from '@/hooks/usePeopleManagement'
-
-function NumberInput({ value, onChange, min }: { value: number, onChange: (val: number) => void, step?: number, min?: number }) {
-  const [focused, setFocused] = useState(false)
-
-  const displayValue = useMemo(() => {
-    return focused ? (value === 0 ? '' : String(value)) : (value === 0 ? '' : formatCurrency(value))
-  }, [value, focused])
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/,/g, '')
-    const num = parseFloat(raw) || 0
-    if (min === undefined || num >= min) onChange(num)
-  }
-
-  return (
-    <div className="relative">
-      <input
-        type="text"
-        value={displayValue}
-        onChange={handleChange}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        autoComplete="off"
-        data-lpignore="true"
-        className="number-input w-full px-2 py-1 pr-6 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded border border-gray-300 dark:border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
-        style={{ caretColor: '#1f2937' }}
-      />
-      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
-      <style>{`
-        .number-input::-webkit-autofill, .number-input:-webkit-autofill {
-          -webkit-text-fill-color: #111827;
-          -webkit-box-shadow: 0 0 0 30px #fff inset;
-        }
-        @media (prefers-color-scheme: dark) {
-          .number-input::-webkit-autofill, .number-input:-webkit-autofill {
-            -webkit-text-fill-color: #f3f4f6;
-            -webkit-box-shadow: 0 0 0 30px #374151 inset;
-          }
-        }
-      `}</style>
-    </div>
-  )
-}
+import type { Account } from '@/types/household'
+import { NumberInput } from '@/components/ui/NumberInput'
 
 interface AccountCardProps {
   account: Account

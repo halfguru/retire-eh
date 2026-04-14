@@ -1,4 +1,4 @@
-import type { Person } from '@/hooks/usePeopleManagement'
+import type { Person } from '@/types/household'
 
 interface ViewSelectorProps {
   selectedPortfolioPersonId: string | null

@@ -1,35 +1,9 @@
 import yaml from 'js-yaml'
-import type { Person } from '@/hooks/usePeopleManagement'
+import type { Person } from '@/types/household'
+import type { PlanAssumptions, RetirementPlan } from '@/types/household'
 import { validateYamlImport } from '@/lib/validation'
 
-export interface PlanAssumptions {
-  expectedReturn: number
-  inflationRate: number
-  replacementRate: number
-  withdrawalRate: number
-  showRealValues: boolean
-}
-
-export interface PersonData {
-  id: string
-  name: string
-  currentAge: number
-  retirementAge: number
-  annualIncome: number
-  annualPension: number
-  accounts: Array<{
-    id: string
-    type: 'RRSP' | 'TFSA'
-    balance: number
-    annualContribution: number
-  }>
-}
-
-export interface RetirementPlan {
-  version: string
-  assumptions: PlanAssumptions
-  people: PersonData[]
-}
+export type { PlanAssumptions, RetirementPlan } from '@/types/household'
 
 export function exportToYAML(
   assumptions: PlanAssumptions,
