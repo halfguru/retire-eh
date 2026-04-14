@@ -61,10 +61,11 @@ export class RetirementCalculator {
      * @param {any} contributions_js
      * @param {any} assumptions_js
      * @param {number} current_age
+     * @param {number} current_year
      * @returns {any}
      */
-    calculate_yearly_projections(household_config_js, account_balance_js, contributions_js, assumptions_js, current_age) {
-        const ret = wasm.retirementcalculator_calculate_yearly_projections(this.__wbg_ptr, household_config_js, account_balance_js, contributions_js, assumptions_js, current_age);
+    calculate_yearly_projections(household_config_js, account_balance_js, contributions_js, assumptions_js, current_age, current_year) {
+        const ret = wasm.retirementcalculator_calculate_yearly_projections(this.__wbg_ptr, household_config_js, account_balance_js, contributions_js, assumptions_js, current_age, current_year);
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }

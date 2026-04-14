@@ -12,15 +12,20 @@ export interface ProjectionDataPoint {
 
 export function useProjection() {
   const [wasmLoaded, setWasmLoaded] = useState(false)
+  const [wasmError, setWasmError] = useState<string | null>(null)
   const wasmInitialized = useRef(false)
 
   useEffect(() => {
     if (wasmInitialized.current) return
     wasmInitialized.current = true
 
-    initWasm().then(() => {
-      setWasmLoaded(true)
-    })
+    initWasm()
+      .then(() => {
+        setWasmLoaded(true)
+      })
+      .catch((error) => {
+        setWasmError(error instanceof Error ? error.message : 'Failed to load calculation engine')
+      })
   }, [])
 
   const calculateProjection = (
@@ -69,7 +74,8 @@ export function useProjection() {
         accountBalance,
         contributions,
         assumptions,
-        baseAge
+        baseAge,
+        new Date().getFullYear()
       )
 
       return result.map((p: { year: number; age: number; rrsp: number; tfsa: number; resp: number; non_registered: number; total_net_worth: number }) => {
@@ -100,6 +106,7 @@ export function useProjection() {
 
   return {
     wasmLoaded,
+    wasmError,
     calculateProjection
   }
 }

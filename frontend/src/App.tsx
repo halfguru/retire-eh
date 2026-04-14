@@ -12,6 +12,7 @@ import { ProjectionsTab } from '@/components/dashboard/ProjectionsTab'
 import { IncomeTab } from '@/components/dashboard/IncomeTab'
 import { LearnTab } from '@/components/dashboard/LearnTab'
 import { exportToYAML, downloadYAML, uploadYAML } from '@/lib/yaml-utils'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 type TabId = 'overview' | 'plan' | 'projections' | 'income' | 'learn'
 
@@ -73,28 +74,42 @@ function App() {
     updateAccountContribution
   } = usePeopleManagement()
 
-  const { calculateProjection } = useProjection()
+  const { wasmLoaded, wasmError, calculateProjection } = useProjection()
+
+  const [localStorageError, setLocalStorageError] = useState<string | null>(null)
 
   const saveToLocalStorage = useCallback(() => {
-    people.forEach((person, idx) => {
-      localStorage.setItem(`person_${idx}_currentAge`, String(person.currentAge))
-      localStorage.setItem(`person_${idx}_retirementAge`, String(person.retirementAge))
-      localStorage.setItem(`person_${idx}_annualPension`, String(person.annualPension || 0))
-      person.accounts.forEach((account) => {
-        localStorage.setItem(`account_${account.id}_balance`, String(account.balance))
-        localStorage.setItem(`account_${account.id}_annualContribution`, String(account.annualContribution))
+    try {
+      people.forEach((person, idx) => {
+        localStorage.setItem(`person_${idx}_currentAge`, String(person.currentAge))
+        localStorage.setItem(`person_${idx}_retirementAge`, String(person.retirementAge))
+        localStorage.setItem(`person_${idx}_annualPension`, String(person.annualPension || 0))
+        person.accounts.forEach((account) => {
+          localStorage.setItem(`account_${account.id}_balance`, String(account.balance))
+          localStorage.setItem(`account_${account.id}_annualContribution`, String(account.annualContribution))
+        })
       })
-    })
-    localStorage.setItem('people', JSON.stringify(people))
-    localStorage.setItem('expectedReturn', String(expectedReturn))
-    localStorage.setItem('inflationRate', String(inflationRate))
-    localStorage.setItem('showRealValues', String(showRealValues))
-    localStorage.setItem('replacementRate', String(replacementRate))
-    localStorage.setItem('withdrawalRate', String(withdrawalRate))
+      localStorage.setItem('people', JSON.stringify(people))
+      localStorage.setItem('expectedReturn', String(expectedReturn))
+      localStorage.setItem('inflationRate', String(inflationRate))
+      localStorage.setItem('showRealValues', String(showRealValues))
+      localStorage.setItem('replacementRate', String(replacementRate))
+      localStorage.setItem('withdrawalRate', String(withdrawalRate))
+    } catch (error) {
+      const message = error instanceof DOMException && error.name === 'QuotaExceededError'
+        ? 'Storage is full. Your data could not be saved. Try removing old data or exporting your plan.'
+        : 'Failed to save data. Your changes may not persist.'
+      console.error('localStorage write failed:', error)
+      return message
+    }
+    return null
   }, [people, expectedReturn, inflationRate, showRealValues, replacementRate, withdrawalRate])
 
   useEffect(() => {
-    saveToLocalStorage()
+    const error = saveToLocalStorage()
+    if (error) {
+      queueMicrotask(() => setLocalStorageError(error))
+    }
   }, [saveToLocalStorage])
 
   const effectivePortfolioPersonId = useMemo(() => {
@@ -231,6 +246,8 @@ function App() {
             selectedPortfolioPerson={selectedPortfolioPerson}
             currentProjectionData={currentProjectionData}
             yearsToRetirement={yearsToRetirement}
+            expectedReturn={expectedReturn}
+            inflationRate={inflationRate}
           />
         )
       case 'income':
@@ -260,8 +277,48 @@ function App() {
         onImport={handleImport}
       />
       <Tabs activeTab={activeTab} onChange={(tab) => setActiveTab(tab as TabId)} />
+      {localStorageError && (
+        <div className="max-w-7xl mx-auto w-full px-4 mt-2">
+          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-3 text-sm text-red-700 dark:text-red-300 flex items-center justify-between">
+            <span>{localStorageError}</span>
+            <button
+              onClick={() => setLocalStorageError(null)}
+              className="ml-3 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200 font-medium"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-6 sm:py-8">
-        {renderTab()}
+        <ErrorBoundary>
+          {wasmError ? (
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-6 text-center">
+              <div className="text-4xl mb-3">⚠️</div>
+              <h2 className="text-lg font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                Calculation engine failed to load
+              </h2>
+              <p className="text-sm text-amber-600 dark:text-amber-400 mb-4">
+                The retirement calculation engine could not be loaded. You can still edit your plan, but projections won't be available.
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-amber-100 dark:bg-amber-800 text-amber-700 dark:text-amber-200 rounded-md hover:bg-amber-200 dark:hover:bg-amber-700 transition-colors text-sm font-medium"
+              >
+                Reload page
+              </button>
+            </div>
+          ) : !wasmLoaded ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-3" />
+                <p className="text-sm text-gray-500 dark:text-gray-400">Loading calculation engine…</p>
+              </div>
+            </div>
+          ) : (
+            renderTab()
+          )}
+        </ErrorBoundary>
       </main>
       <Footer />
     </div>

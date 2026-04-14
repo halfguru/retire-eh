@@ -71,6 +71,7 @@ pub fn calculate_yearly_projections(
     contributions: &ContributionConfig,
     assumptions: &Assumptions,
     current_age: u32,
+    current_year: u32,
 ) -> Vec<YearlyProjection> {
     let years_to_retirement = household_config.retirement_age.saturating_sub(current_age);
     let monthly_return_rate = assumptions.return_rate / 100.0 / 12.0;
@@ -81,8 +82,6 @@ pub fn calculate_yearly_projections(
     let mut non_registered = account_balance.non_registered;
 
     let mut projections = Vec::new();
-
-    let current_year = 2025;
 
     for year in 0..=years_to_retirement {
         projections.push(YearlyProjection {
@@ -115,6 +114,9 @@ fn calculate_future_value(
     monthly_return_rate: f64,
     months: u32,
 ) -> f64 {
+    if monthly_return_rate.abs() < f64::EPSILON {
+        return present_value + monthly_contribution * months as f64;
+    }
     let fv_of_pv = present_value * (1.0 + monthly_return_rate).powi(months as i32);
     let fv_of_contributions = monthly_contribution
         * ((1.0 + monthly_return_rate).powi(months as i32) - 1.0)

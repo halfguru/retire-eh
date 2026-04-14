@@ -8,6 +8,8 @@ interface ProjectionsTabProps {
   selectedPortfolioPerson: Person | undefined
   currentProjectionData: ProjectionDataPoint[]
   yearsToRetirement: number
+  expectedReturn: number
+  inflationRate: number
 }
 
 export function ProjectionsTab({
@@ -15,7 +17,9 @@ export function ProjectionsTab({
   portfolioView,
   selectedPortfolioPerson,
   currentProjectionData,
-  yearsToRetirement
+  yearsToRetirement,
+  expectedReturn,
+  inflationRate
 }: ProjectionsTabProps) {
   return (
     <div className="space-y-6">
@@ -33,10 +37,10 @@ export function ProjectionsTab({
         </h3>
         <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
           <p>
-            <strong className="text-gray-800 dark:text-gray-200">Growth Rate:</strong> Your portfolio is projected to grow at {7}% annually (before inflation adjustment).
+            <strong className="text-gray-800 dark:text-gray-200">Growth Rate:</strong> Your portfolio is projected to grow at {expectedReturn}% annually (before inflation adjustment).
           </p>
           <p>
-            <strong className="text-gray-800 dark:text-gray-200">Inflation:</strong> Values are adjusted for {2.5}% annual inflation to show purchasing power in today's dollars.
+            <strong className="text-gray-800 dark:text-gray-200">Inflation:</strong> Values are adjusted for {inflationRate}% annual inflation to show purchasing power in today's dollars.
           </p>
           <p>
             <strong className="text-gray-800 dark:text-gray-200">Contributions:</strong> Regular contributions accelerate growth through dollar-cost averaging.

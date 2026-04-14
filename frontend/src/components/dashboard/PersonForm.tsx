@@ -3,6 +3,7 @@ import type { Person } from '@/hooks/usePeopleManagement'
 import { InfoTooltip } from './InfoTooltip'
 import { AccountCard } from './AccountCard'
 import { formatCurrency } from '@/hooks/usePeopleManagement'
+import { validateAge, validateRetirementAge } from '@/lib/validation'
 
 function NumberInput({ value, onChange, step, min }: { value: number, onChange: (val: number) => void, step: number, min?: number }) {
   const [focused, setFocused] = useState(false)
@@ -165,8 +166,15 @@ export function PersonForm({
             max={100}
             value={person.currentAge}
             onChange={(e) => onUpdatePerson(person.id, 'currentAge', e.target.valueAsNumber)}
-            className="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+            className={`w-full px-2.5 py-1.5 text-sm border rounded bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-1 ${
+              validateAge(person.currentAge)
+                ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500/20'
+                : 'border-gray-300 dark:border-gray-600 focus:border-indigo-500 focus:ring-indigo-500/20'
+            }`}
           />
+          {validateAge(person.currentAge) && (
+            <p className="text-xs text-red-500 dark:text-red-400 mt-0.5">{validateAge(person.currentAge)}</p>
+          )}
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Retirement Age</label>
@@ -176,12 +184,19 @@ export function PersonForm({
             max={100}
             value={person.retirementAge}
             onChange={(e) => onUpdatePerson(person.id, 'retirementAge', e.target.valueAsNumber)}
-            className="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20"
+            className={`w-full px-2.5 py-1.5 text-sm border rounded bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-1 ${
+              validateRetirementAge(person.retirementAge, person.currentAge)
+                ? 'border-red-300 dark:border-red-600 focus:border-red-500 focus:ring-red-500/20'
+                : 'border-gray-300 dark:border-gray-600 focus:border-emerald-500 focus:ring-emerald-500/20'
+            }`}
           />
+          {validateRetirementAge(person.retirementAge, person.currentAge) && (
+            <p className="text-xs text-red-500 dark:text-red-400 mt-0.5">{validateRetirementAge(person.retirementAge, person.currentAge)}</p>
+          )}
         </div>
       </div>
 
-      {person.retirementAge <= person.currentAge && (
+      {person.retirementAge <= person.currentAge && !validateRetirementAge(person.retirementAge, person.currentAge) && (
         <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-1.5 rounded border border-amber-200 dark:border-amber-800">
           Retirement age must be greater than current age
         </div>

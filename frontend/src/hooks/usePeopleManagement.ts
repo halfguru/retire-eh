@@ -68,7 +68,7 @@ export function usePeopleManagement() {
   }, [people, selectedPersonId])
 
   const addPerson = () => {
-    const newId = Date.now().toString()
+    const newId = crypto.randomUUID()
     const newPerson: Person = {
       id: newId,
       name: `Person ${people.length + 1}`,
@@ -95,7 +95,7 @@ export function usePeopleManagement() {
       if (p.id === personId) {
         return {
           ...p,
-          accounts: [...p.accounts, { id: Date.now().toString(), type, balance: 0, annualContribution: 0 }]
+          accounts: [...p.accounts, { id: crypto.randomUUID(), type, balance: 0, annualContribution: 0 }]
         }
       }
       return p
