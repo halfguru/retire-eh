@@ -47,6 +47,9 @@ interface PeopleContextValue {
 
 const PeopleContext = createContext<PeopleContextValue | null>(null)
 
+// Maximum CPP retirement pension at age 65 (~$1,364/month in 2024), used as the default CPP estimate.
+const MAX_CPP_ANNUAL = 16368
+
 const defaultPeople: Person[] = [
   {
     id: '1',
@@ -55,6 +58,7 @@ const defaultPeople: Person[] = [
     retirementAge: 65,
     annualIncome: 100000,
     annualPension: 0,
+    annualCpp: MAX_CPP_ANNUAL,
     accounts: [
       { id: '1-1', type: 'RRSP', balance: 100000, annualContribution: 0 },
       { id: '1-2', type: 'TFSA', balance: 80000, annualContribution: 0 },
@@ -103,7 +107,7 @@ export function usePeople() {
     setSelectedPersonId,
     addPerson: () => {
       const newId = crypto.randomUUID()
-      dispatch({ type: 'ADD_PERSON', payload: { id: newId, name: `Person ${people.length + 1}`, currentAge: 35, retirementAge: 65, annualIncome: 0, annualPension: 0, accounts: [] } })
+      dispatch({ type: 'ADD_PERSON', payload: { id: newId, name: `Person ${people.length + 1}`, currentAge: 35, retirementAge: 65, annualIncome: 0, annualPension: 0, annualCpp: MAX_CPP_ANNUAL, accounts: [] } })
       setSelectedPersonId(newId)
     },
     deletePerson: (id: string) => dispatch({ type: 'DELETE_PERSON', payload: id }),

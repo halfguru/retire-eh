@@ -59,17 +59,16 @@ export function PersonForm({
 
   return (
     <div ref={menuContainerRef} className="space-y-3">
-      <div>
-        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Name</label>
-        <input
-          type="text"
-          value={person.name}
-          onChange={(e) => onUpdatePerson(person.id, 'name', e.target.value)}
-          className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-slate-800 text-gray-900 dark:text-white font-medium focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
-        />
-      </div>
-
       <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Name</label>
+          <input
+            type="text"
+            value={person.name}
+            onChange={(e) => onUpdatePerson(person.id, 'name', e.target.value)}
+            className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-slate-800 text-gray-900 dark:text-white font-medium focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+          />
+        </div>
         <div>
           <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
             Annual Income
@@ -84,8 +83,21 @@ export function PersonForm({
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-            Pension (CPP/Employer)
-            <InfoTooltip text="Expected annual pension at retirement" />
+            CPP (est. at 65)
+            <InfoTooltip text="Expected annual CPP at retirement. Defaults to the maximum (~$16,400/yr at 65); lower it if you'll take CPP early or have fewer contribution years. Capped at $25,000/yr." />
+          </label>
+          <NumberInput
+            value={person.annualCpp || 0}
+            onChange={(val) => onUpdatePerson(person.id, 'annualCpp', val)}
+            step={1000}
+            min={0}
+            max={25000}
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+            Employer Pension
+            <InfoTooltip text="Expected annual workplace pension at retirement (defined benefit or annuity)" />
           </label>
           <NumberInput
             value={person.annualPension || 0}
@@ -94,9 +106,6 @@ export function PersonForm({
             min={0}
           />
         </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Current Age</label>
           <input

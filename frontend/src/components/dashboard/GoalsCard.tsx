@@ -28,7 +28,7 @@ export function GoalsCard(props: GoalsCardProps) {
         {annualPension > 0 && (
           <div className="text-sm text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-800">
             <div className="flex justify-between items-center">
-              <span>💰 Annual Pension Income</span>
+              <span>💰 Annual Pension + CPP Income</span>
               <span className="font-semibold">${formatMoney(annualPension)}/year</span>
             </div>
             <div className="text-xs mt-1 text-emerald-700 dark:text-emerald-300">

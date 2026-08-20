@@ -13,13 +13,14 @@ export function OverviewTab() {
   const projection = useProjectionContext()
 
   const allAccounts = people.flatMap(p => p.accounts)
+  const totalGuaranteedPension = projection.totalAnnualPension + projection.totalAnnualCpp
 
   return (
     <div className="space-y-6">
       <SummaryCard
         currentProjectionData={projection.realProjectionData}
         annualIncome={projection.totalAnnualIncome}
-        annualPension={projection.totalAnnualPension}
+        annualPension={totalGuaranteedPension}
         replacementRate={assumptions.replacementRate}
         withdrawalRate={assumptions.withdrawalRate}
         yearsToRetirement={projection.yearsToRetirement}
@@ -58,7 +59,7 @@ export function OverviewTab() {
       <GoalsCard
         currentProjectionData={projection.realProjectionData}
         annualIncome={projection.totalAnnualIncome}
-        annualPension={projection.totalAnnualPension}
+        annualPension={totalGuaranteedPension}
         replacementRate={assumptions.replacementRate}
         withdrawalRate={assumptions.withdrawalRate}
         yearsToRetirement={projection.yearsToRetirement}
