@@ -18,6 +18,7 @@ interface ProjectionContextValueTyped {
   yearsToRetirement: number
   totalAnnualIncome: number
   totalAnnualPension: number
+  totalAnnualCpp: number
   totalPortfolio: number
   totalAnnualContributions: number
   selectedPersonPortfolio: number
@@ -33,16 +34,7 @@ export function ProjectionProvider({ children }: { children: ReactNode }) {
   const { expectedReturn, inflationRate, showRealValues } = useAssumptions()
   const { wasmLoaded, wasmError, calculateProjection } = useProjection()
 
-  const [portfolioPersonId, setPortfolioPersonId] = useState<string | null>(() => {
-    const saved = localStorage.getItem('people')
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved)
-        return parsed[0]?.id || null
-      } catch { return '1' }
-    }
-    return '1'
-  })
+  const [portfolioPersonId, setPortfolioPersonId] = useState<string | null>(null)
 
   const effectivePortfolioPersonId = useMemo(() => {
     if (people.length === 0) return null
@@ -54,6 +46,7 @@ export function ProjectionProvider({ children }: { children: ReactNode }) {
   const yearsToRetirement = householdRetirementAge - Math.min(...people.map(p => p.currentAge))
   const totalAnnualIncome = people.reduce((sum, p) => sum + (p.annualIncome || 0), 0)
   const totalAnnualPension = people.reduce((sum, p) => sum + (p.annualPension || 0), 0)
+  const totalAnnualCpp = people.reduce((sum, p) => sum + (p.annualCpp || 0), 0)
   const allAccounts = people.flatMap(p => p.accounts)
   const totalPortfolio = allAccounts.reduce((sum, acc) => sum + (acc.balance || 0), 0)
   const totalAnnualContributions = allAccounts.reduce((sum, acc) => sum + (acc.annualContribution || 0), 0)
@@ -92,7 +85,7 @@ export function ProjectionProvider({ children }: { children: ReactNode }) {
       portfolioPersonId: effectivePortfolioPersonId, setPortfolioPersonId,
       projectionData, individualProjectionData, currentProjectionData, realProjectionData,
       householdRetirementAge, yearsToRetirement,
-      totalAnnualIncome, totalAnnualPension,
+      totalAnnualIncome, totalAnnualPension, totalAnnualCpp,
       totalPortfolio, totalAnnualContributions,
       selectedPersonPortfolio, selectedPersonAccounts, selectedPortfolioPerson,
       portfolioView,

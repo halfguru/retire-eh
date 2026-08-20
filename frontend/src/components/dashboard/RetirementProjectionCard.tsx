@@ -33,7 +33,7 @@ export function RetirementProjectionCard({
       </div>
       <div className="mt-4 space-y-2 text-sm">
         <div className="text-gray-500 dark:text-gray-400">
-          Growth: ${formatMoney(portfolioAtRetirement - basePortfolio)} ({((portfolioAtRetirement / basePortfolio - 1) * 100).toFixed(1)}%)
+          Growth: ${formatMoney(portfolioAtRetirement - basePortfolio)}
         </div>
         {lastPoint && (
           <div className="text-amber-600 dark:text-amber-400">

@@ -89,14 +89,28 @@ const sections: LearnSection[] = [
         <div className="space-y-3">
           <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
             <strong className="text-blue-700 dark:text-blue-300">CPP (Canada Pension Plan)</strong>
-            <p className="mt-1 text-xs">
-              Based on your contributions during working years. Can start as early as 60 or delay to 70 for higher payments. Maximum ~$1,364/month in 2024.
+            <p className="mt-1 text-xs space-y-2">
+              <span className="block">
+                A <strong>contribution-based</strong> benefit (not need-based). What you receive depends on how much you contributed over your career, not on your current savings.
+              </span>
+              <span className="block">
+                Your pension is calculated from your <strong>best 83% of working years</strong> (the 17% lowest/zero-earning years are dropped). Each year only counts up to the <strong>Year's Maximum Pensionable Earnings (YMPE)</strong> — earning above it doesn't increase CPP.
+              </span>
+              <span className="block">
+                <strong>Maximum ~$1,364/month at age 65</strong> (2024). To reach the maximum you generally need ~39 years of maximum contributions.
+              </span>
+              <span className="block">
+                You can take it from age <strong>60 to 70</strong>. Each month before 65 reduces the amount by ~0.6% (about 7.2%/year); each month after 65 increases it by ~0.7% until 70.
+              </span>
+              <span className="block">
+                Your <strong>official estimate</strong> lives in your My Service Canada Account under "CPP Statement of Contributions."
+              </span>
             </p>
           </div>
           <div className="p-3 bg-amber-50 dark:bg-amber-900/30 rounded-lg">
             <strong className="text-amber-700 dark:text-amber-300">OAS (Old Age Security)</strong>
             <p className="mt-1 text-xs">
-              Available at 65, based on residency. Maximum ~$691/month in 2024. Clawed back at high income (starting ~$90k).
+              Available at 65, based on residency (40 years in Canada for the full amount). Maximum ~$691/month in 2024. Clawed back at high income (starting ~$90k).
             </p>
           </div>
         </div>

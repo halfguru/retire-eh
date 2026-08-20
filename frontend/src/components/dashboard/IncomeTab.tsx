@@ -13,6 +13,7 @@ export function IncomeTab() {
       <IncomeBreakdownCard
         portfolioAtRetirement={portfolioAtRetirement}
         annualPension={projection.totalAnnualPension}
+        annualCpp={projection.totalAnnualCpp}
         withdrawalRate={assumptions.withdrawalRate}
         retirementAge={projection.householdRetirementAge}
       />

@@ -1,5 +1,6 @@
 import { useRetirementGoal } from '@/hooks/useRetirementGoal'
 import { formatMoney } from '@/lib/formatting'
+import { getPortfolioAtRetirement } from '@/lib/calculations'
 
 interface SummaryCardProps {
   currentProjectionData: Parameters<typeof useRetirementGoal>[0]['currentProjectionData']
@@ -16,11 +17,14 @@ interface SummaryCardProps {
 }
 
 export function SummaryCard(props: SummaryCardProps) {
-  const { householdRetirementAge, ...goalProps } = props
-  const { progress, additionalAnnualSavings, projectedAnnualIncome } = useRetirementGoal(goalProps)
+  const { householdRetirementAge, currentProjectionData, withdrawalRate, ...goalProps } = props
+  const { progress, additionalAnnualSavings, projectedAnnualIncome } = useRetirementGoal({ ...goalProps, currentProjectionData, withdrawalRate })
 
   const isOnTrack = progress >= 100
   const { yearsToRetirement } = goalProps
+
+  const portfolioWithdrawal = getPortfolioAtRetirement(currentProjectionData) * (withdrawalRate / 100)
+  const guaranteedIncome = projectedAnnualIncome - portfolioWithdrawal
 
   return (
     <div className={`animate-fade-in-up rounded-xl shadow-lg border-2 p-6 sm:p-8 ${isOnTrack
@@ -40,6 +44,9 @@ export function SummaryCard(props: SummaryCardProps) {
           </div>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
             Retire at age {householdRetirementAge} with <span className="font-semibold">${formatMoney(projectedAnnualIncome)}/year</span> income
+          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            {formatMoney(portfolioWithdrawal)}/yr from a {withdrawalRate}% portfolio withdrawal + {formatMoney(guaranteedIncome)}/yr CPP/pension
           </p>
         </div>
 

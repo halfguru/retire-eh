@@ -14,6 +14,7 @@ const personSchema = z.object({
   retirementAge: z.number().int().min(0).max(120),
   annualIncome: z.number().min(0),
   annualPension: z.number().min(0),
+  annualCpp: z.number().min(0).optional(),
   accounts: z.array(accountSchema),
 })
 

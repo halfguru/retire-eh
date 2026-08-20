@@ -3,22 +3,23 @@ import { formatMoney } from '@/lib/formatting'
 interface IncomeBreakdownCardProps {
   portfolioAtRetirement: number
   annualPension: number
+  annualCpp: number
   withdrawalRate: number
   retirementAge: number
 }
 
 const OAS_MAX_2024 = 8296
-const CPP_AVERAGE_2024 = 9600
 
 export function IncomeBreakdownCard({
   portfolioAtRetirement,
   annualPension,
+  annualCpp,
   withdrawalRate,
   retirementAge
 }: IncomeBreakdownCardProps) {
   const portfolioWithdrawal = portfolioAtRetirement * (withdrawalRate / 100)
   const oasEstimate = retirementAge >= 65 ? OAS_MAX_2024 : 0
-  const cppEstimate = CPP_AVERAGE_2024
+  const cppEstimate = annualCpp
 
   const totalAnnualIncome = portfolioWithdrawal + annualPension + oasEstimate + cppEstimate
   const totalMonthlyIncome = totalAnnualIncome / 12
@@ -33,7 +34,7 @@ export function IncomeBreakdownCard({
     {
       name: 'CPP (estimated)',
       amount: cppEstimate,
-      description: 'Average CPP benefit',
+      description: 'Your entered CPP estimate (defaults to maximum at 65)',
       color: 'emerald'
     },
     {

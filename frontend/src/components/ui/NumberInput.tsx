@@ -6,10 +6,11 @@ interface NumberInputProps {
   onChange: (val: number) => void
   step?: number
   min?: number
+  max?: number
   size?: 'default' | 'compact'
 }
 
-export function NumberInput({ value, onChange, step, min, size = 'default' }: NumberInputProps) {
+export function NumberInput({ value, onChange, step, min, max, size = 'default' }: NumberInputProps) {
   const [focused, setFocused] = useState(false)
 
   const displayValue = useMemo(() => {
@@ -20,7 +21,7 @@ export function NumberInput({ value, onChange, step, min, size = 'default' }: Nu
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/,/g, '')
     const num = parseFloat(raw) || 0
-    if (min === undefined || num >= min) onChange(num)
+    if ((min === undefined || num >= min) && (max === undefined || num <= max)) onChange(num)
   }
 
   const isCompact = size === 'compact'
