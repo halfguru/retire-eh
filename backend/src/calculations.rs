@@ -213,15 +213,36 @@ pub fn calculate_additional_annual_savings(
 // deterministic path. Returns are nominal; results are deflated to today's
 // dollars using the supplied inflation rate, matching the frontend's real view.
 
+#[cfg(not(target_arch = "wasm32"))]
+fn random_f64() -> f64 {
+    use std::cell::Cell;
+    thread_local! {
+        static SEED: Cell<u64> = Cell::new(123456789);
+    }
+    SEED.with(|cell| {
+        let mut x = cell.get();
+        x ^= x << 13;
+        x ^= x >> 7;
+        x ^= x << 17;
+        cell.set(x);
+        (x as f64) / (u64::MAX as f64)
+    })
+}
+
+#[cfg(target_arch = "wasm32")]
+fn random_f64() -> f64 {
+    js_sys::Math::random()
+}
+
 fn gaussian() -> f64 {
     let u = loop {
-        let u = js_sys::Math::random();
+        let u = random_f64();
         if u != 0.0 {
             break u;
         }
     };
     let v = loop {
-        let v = js_sys::Math::random();
+        let v = random_f64();
         if v != 0.0 {
             break v;
         }
