@@ -144,30 +144,29 @@ impl RetirementCalculator {
     }
 
     #[wasm_bindgen]
-    pub fn run_monte_carlo(
-        &self,
-        params_js: JsValue,
-    ) -> Result<JsValue, JsValue> {
-        let params: MonteCarloParams = serde_wasm_bindgen::from_value(params_js)
-            .map_err(|e| JsValue::from_str(&format!("Failed to parse Monte Carlo params: {}", e)))?;
+    pub fn run_monte_carlo(&self, params_js: JsValue) -> Result<JsValue, JsValue> {
+        let params: MonteCarloParams = serde_wasm_bindgen::from_value(params_js).map_err(|e| {
+            JsValue::from_str(&format!("Failed to parse Monte Carlo params: {}", e))
+        })?;
 
         let years = run_monte_carlo(&params);
 
-        serde_wasm_bindgen::to_value(&years)
-            .map_err(|e| JsValue::from_str(&format!("Failed to serialize Monte Carlo results: {}", e)))
+        serde_wasm_bindgen::to_value(&years).map_err(|e| {
+            JsValue::from_str(&format!("Failed to serialize Monte Carlo results: {}", e))
+        })
     }
 
     #[wasm_bindgen]
-    pub fn simulate_retirement_paths(
-        &self,
-        params_js: JsValue,
-    ) -> Result<JsValue, JsValue> {
-        let params: RetirementPathParams = serde_wasm_bindgen::from_value(params_js)
-            .map_err(|e| JsValue::from_str(&format!("Failed to parse retirement path params: {}", e)))?;
+    pub fn simulate_retirement_paths(&self, params_js: JsValue) -> Result<JsValue, JsValue> {
+        let params: RetirementPathParams =
+            serde_wasm_bindgen::from_value(params_js).map_err(|e| {
+                JsValue::from_str(&format!("Failed to parse retirement path params: {}", e))
+            })?;
 
         let years = simulate_retirement_paths(&params);
 
-        serde_wasm_bindgen::to_value(&years)
-            .map_err(|e| JsValue::from_str(&format!("Failed to serialize retirement path results: {}", e)))
+        serde_wasm_bindgen::to_value(&years).map_err(|e| {
+            JsValue::from_str(&format!("Failed to serialize retirement path results: {}", e))
+        })
     }
 }

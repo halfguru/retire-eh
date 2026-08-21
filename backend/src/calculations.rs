@@ -334,7 +334,13 @@ pub fn run_monte_carlo(params: &MonteCarloParams) -> Vec<MonteCarloYear> {
             let mut vals = std::mem::take(&mut per_year[y]);
             vals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
             let inflation_factor = (1.0 + params.inflation_pct / 100.0).powi(y as i32);
-            let deflate = |v: f64| if params.show_real_values { v / inflation_factor } else { v };
+            let deflate = |v: f64| {
+                if params.show_real_values {
+                    v / inflation_factor
+                } else {
+                    v
+                }
+            };
             MonteCarloYear {
                 age: params.start_age + y as u32,
                 p10: deflate(percentile(&vals, 0.1)),
@@ -380,13 +386,16 @@ pub struct RetirementPathYear {
 // today's dollars so the chart shows both the median and the downside drawdown.
 pub fn simulate_retirement_paths(params: &RetirementPathParams) -> Vec<RetirementPathYear> {
     let monthly_mean = if params.show_real_values {
-        let real_annual = (1.0 + params.expected_return_pct / 100.0) / (1.0 + params.inflation_pct / 100.0) - 1.0;
+        let real_annual = (1.0 + params.expected_return_pct / 100.0)
+            / (1.0 + params.inflation_pct / 100.0)
+            - 1.0;
         real_annual / 12.0
     } else {
         params.expected_return_pct / 100.0 / 12.0
     };
     let monthly_sd = params.annual_volatility / 12.0_f64.sqrt();
-    let monthly_withdrawal = (params.start_balance * (params.withdrawal_rate_pct / 100.0)) / 12.0;
+    let monthly_withdrawal =
+        (params.start_balance * (params.withdrawal_rate_pct / 100.0)) / 12.0;
     let years = (params.end_age - params.start_age) as usize;
     let sims = params.sims.max(1) as usize;
 
