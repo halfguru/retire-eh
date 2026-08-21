@@ -152,10 +152,7 @@ impl RetirementCalculator {
         let years = run_monte_carlo(&params);
 
         serde_wasm_bindgen::to_value(&years).map_err(|e| {
-            JsValue::from_str(&format!(
-                "Failed to serialize Monte Carlo results: {}",
-                e
-            ))
+            JsValue::from_str(&format!("Failed to serialize Monte Carlo results: {}", e))
         })
     }
 
