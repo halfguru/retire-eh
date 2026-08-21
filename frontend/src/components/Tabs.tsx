@@ -1,4 +1,4 @@
-import { FileText, Target, TrendingUp, Wallet, BookOpen } from 'lucide-react'
+import { FileText, Target, TrendingUp, BookOpen } from 'lucide-react'
 
 interface TabsProps {
   activeTab: string

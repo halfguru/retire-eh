@@ -8,6 +8,7 @@ const mockAssumptions: PlanAssumptions = {
   inflationRate: 2.5,
   replacementRate: 70,
   withdrawalRate: 4,
+  retirementTaxRate: 20,
   showRealValues: true,
   plannedGifts: [],
 }
