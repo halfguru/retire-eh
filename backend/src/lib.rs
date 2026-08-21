@@ -5,8 +5,8 @@ use wasm_bindgen::prelude::*;
 
 pub use calculations::{
     calculate_additional_annual_savings, calculate_projection, calculate_simple_projection,
-    calculate_yearly_projections, MonteCarloParams, MonteCarloYear, RetirementPathParams,
-    RetirementPathYear, run_monte_carlo, simulate_retirement_paths, SimpleProjection,
+    calculate_yearly_projections, run_monte_carlo, simulate_retirement_paths, MonteCarloParams,
+    MonteCarloYear, RetirementPathParams, RetirementPathYear, SimpleProjection,
 };
 pub use models::{
     AccountBalance, Assumptions, ChildInfo, ContributionConfig, HouseholdConfig,
@@ -152,7 +152,10 @@ impl RetirementCalculator {
         let years = run_monte_carlo(&params);
 
         serde_wasm_bindgen::to_value(&years).map_err(|e| {
-            JsValue::from_str(&format!("Failed to serialize Monte Carlo results: {}", e))
+            JsValue::from_str(&format!(
+                "Failed to serialize Monte Carlo results: {}",
+                e
+            ))
         })
     }
 
@@ -166,7 +169,10 @@ impl RetirementCalculator {
         let years = simulate_retirement_paths(&params);
 
         serde_wasm_bindgen::to_value(&years).map_err(|e| {
-            JsValue::from_str(&format!("Failed to serialize retirement path results: {}", e))
+            JsValue::from_str(&format!(
+                "Failed to serialize retirement path results: {}",
+                e
+            ))
         })
     }
 }
