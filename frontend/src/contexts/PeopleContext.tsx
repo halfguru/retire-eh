@@ -47,8 +47,8 @@ interface PeopleContextValue {
 
 const PeopleContext = createContext<PeopleContextValue | null>(null)
 
-// Maximum CPP retirement pension at age 65 (~$1,364/month in 2024), used as the default CPP estimate.
-const MAX_CPP_ANNUAL = 16368
+// Maximum CPP retirement pension at age 65 (~$1,508/month in 2026), used as the default CPP estimate.
+const MAX_CPP_ANNUAL = 18092
 
 const defaultPeople: Person[] = [
   {

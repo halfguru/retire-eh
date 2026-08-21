@@ -18,12 +18,21 @@ const personSchema = z.object({
   accounts: z.array(accountSchema),
 })
 
+const plannedGiftSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().min(1),
+  amount: z.number().min(0),
+  age: z.number().int().min(0).max(120),
+})
+
 const assumptionsSchema = z.object({
   expectedReturn: z.number().min(0).max(50),
   inflationRate: z.number().min(0).max(30),
   replacementRate: z.number().min(0).max(200),
   withdrawalRate: z.number().min(0.01).max(20),
+  retirementTaxRate: z.number().min(0).max(100).optional().default(20),
   showRealValues: z.boolean(),
+  plannedGifts: z.array(plannedGiftSchema).optional().default([]),
 })
 
 export const retirementPlanSchema = z.object({

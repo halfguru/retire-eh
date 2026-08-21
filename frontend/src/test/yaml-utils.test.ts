@@ -9,6 +9,7 @@ const mockAssumptions: PlanAssumptions = {
   replacementRate: 70,
   withdrawalRate: 4,
   showRealValues: true,
+  plannedGifts: [],
 }
 
 const mockPeople: Person[] = [

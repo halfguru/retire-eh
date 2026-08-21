@@ -82,31 +82,6 @@ export function PersonForm({
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-            CPP (est. at 65)
-            <InfoTooltip text="Expected annual CPP at retirement. Defaults to the maximum (~$16,400/yr at 65); lower it if you'll take CPP early or have fewer contribution years. Capped at $25,000/yr." />
-          </label>
-          <NumberInput
-            value={person.annualCpp || 0}
-            onChange={(val) => onUpdatePerson(person.id, 'annualCpp', val)}
-            step={1000}
-            min={0}
-            max={25000}
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-            Employer Pension
-            <InfoTooltip text="Expected annual workplace pension at retirement (defined benefit or annuity)" />
-          </label>
-          <NumberInput
-            value={person.annualPension || 0}
-            onChange={(val) => onUpdatePersonAnnualPension(person.id, val)}
-            step={1000}
-            min={0}
-          />
-        </div>
-        <div>
           <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Current Age</label>
           <input
             type="number"
@@ -141,6 +116,31 @@ export function PersonForm({
           {validateRetirementAge(person.retirementAge, person.currentAge) && (
             <p className="text-xs text-red-500 dark:text-red-400 mt-0.5">{validateRetirementAge(person.retirementAge, person.currentAge)}</p>
           )}
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+            Annual CPP (at retirement)
+            <InfoTooltip text="Estimated Canada Pension Plan income per year once retired, starting at age 65. Defaults to the 2026 maximum (~$18,100/yr); lower it if you'll take CPP early or have fewer than ~39 max-contribution years. Capped at $25,000/yr." />
+          </label>
+          <NumberInput
+            value={person.annualCpp || 0}
+            onChange={(val) => onUpdatePerson(person.id, 'annualCpp', val)}
+            step={1000}
+            min={0}
+            max={25000}
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+            Annual Employer Pension (at retirement)
+            <InfoTooltip text="Estimated workplace pension income per year once retired (defined benefit or annuity). Leave at 0 if you have no employer pension." />
+          </label>
+          <NumberInput
+            value={person.annualPension || 0}
+            onChange={(val) => onUpdatePersonAnnualPension(person.id, val)}
+            step={1000}
+            min={0}
+          />
         </div>
       </div>
 

@@ -4,7 +4,7 @@ import { useAssumptions } from '@/contexts/AssumptionsContext'
 
 export function usePersistence() {
   const { people } = usePeople()
-  const { expectedReturn, inflationRate, replacementRate, withdrawalRate, showRealValues } = useAssumptions()
+  const { expectedReturn, inflationRate, replacementRate, withdrawalRate, retirementTaxRate, showRealValues, plannedGifts } = useAssumptions()
   const [localStorageError, setLocalStorageError] = useState<string | null>(null)
 
   const saveToLocalStorage = useCallback(() => {
@@ -25,6 +25,8 @@ export function usePersistence() {
       localStorage.setItem('showRealValues', String(showRealValues))
       localStorage.setItem('replacementRate', String(replacementRate))
       localStorage.setItem('withdrawalRate', String(withdrawalRate))
+      localStorage.setItem('retirementTaxRate', String(retirementTaxRate))
+      localStorage.setItem('plannedGifts', JSON.stringify(plannedGifts))
     } catch (error) {
       const message = error instanceof DOMException && error.name === 'QuotaExceededError'
         ? 'Storage is full. Your data could not be saved. Try removing old data or exporting your plan.'
@@ -33,7 +35,7 @@ export function usePersistence() {
       return message
     }
     return null
-  }, [people, expectedReturn, inflationRate, showRealValues, replacementRate, withdrawalRate])
+  }, [people, expectedReturn, inflationRate, showRealValues, replacementRate, withdrawalRate, retirementTaxRate, plannedGifts])
 
   useEffect(() => {
     const error = saveToLocalStorage()

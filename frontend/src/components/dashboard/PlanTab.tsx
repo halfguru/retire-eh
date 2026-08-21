@@ -1,12 +1,15 @@
 import { AssumptionsPanel } from './AssumptionsPanel'
+import { GiftsPanel } from './GiftsPanel'
 import { PersonSelector } from './PersonSelector'
 import { PersonForm } from './PersonForm'
 import { usePeople } from '@/contexts/PeopleContext'
 import { useAssumptions } from '@/contexts/AssumptionsContext'
+import { useProjectionContext } from '@/contexts/ProjectionContext'
 
 export function PlanTab() {
   const peopleApi = usePeople()
   const assumptions = useAssumptions()
+  const projection = useProjectionContext()
 
   if (peopleApi.people.length === 0) {
     return (
@@ -24,7 +27,7 @@ export function PlanTab() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-      <div className="animate-fade-in-up bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+      <div className="animate-fade-in-up card p-4">
           <div className="flex items-center justify-between mb-3">
             <PersonSelector
               people={peopleApi.people}
@@ -53,16 +56,21 @@ export function PlanTab() {
           />
       </div>
 
-      <AssumptionsPanel
-        expectedReturn={assumptions.expectedReturn}
-        setExpectedReturn={assumptions.setExpectedReturn}
-        inflationRate={assumptions.inflationRate}
-        setInflationRate={assumptions.setInflationRate}
-        replacementRate={assumptions.replacementRate}
-        setReplacementRate={assumptions.setReplacementRate}
-        withdrawalRate={assumptions.withdrawalRate}
-        setWithdrawalRate={assumptions.setWithdrawalRate}
-      />
+      <div className="space-y-4">
+        <AssumptionsPanel
+          expectedReturn={assumptions.expectedReturn}
+          setExpectedReturn={assumptions.setExpectedReturn}
+          inflationRate={assumptions.inflationRate}
+          setInflationRate={assumptions.setInflationRate}
+          replacementRate={assumptions.replacementRate}
+          setReplacementRate={assumptions.setReplacementRate}
+          withdrawalRate={assumptions.withdrawalRate}
+          setWithdrawalRate={assumptions.setWithdrawalRate}
+          retirementTaxRate={assumptions.retirementTaxRate}
+          setRetirementTaxRate={assumptions.setRetirementTaxRate}
+        />
+        <GiftsPanel defaultAge={projection.householdRetirementAge} />
+      </div>
     </div>
   )
 }

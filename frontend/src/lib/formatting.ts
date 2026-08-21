@@ -4,12 +4,12 @@ export function formatMoney(value: number): string {
 
 export function formatCompactMoney(value: number): string {
   if (value >= 1000000) {
-    return `$${(value / 1000000).toFixed(1)}M`
+    return `${(value / 1000000).toFixed(1)}M`
   }
   if (value >= 1000) {
-    return `$${(value / 1000).toFixed(0)}k`
+    return `${(value / 1000).toFixed(0)}k`
   }
-  return `$${value.toFixed(0)}`
+  return `${value.toFixed(0)}`
 }
 
 export function formatCurrency(value: number | string): string {
