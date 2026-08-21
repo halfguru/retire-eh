@@ -2,6 +2,7 @@ use crate::models::{
     AccountBalance, Assumptions, ChildInfo, ContributionConfig, HouseholdConfig,
     RetirementProjection, YearlyProjection,
 };
+#[cfg(target_arch = "wasm32")]
 use js_sys;
 
 #[derive(serde::Serialize, serde::Deserialize)]
