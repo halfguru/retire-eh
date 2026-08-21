@@ -2,11 +2,12 @@ import { IncomeBreakdownCard } from './IncomeBreakdownCard'
 import { getPortfolioAtRetirement } from '@/lib/calculations'
 import { useProjectionContext } from '@/contexts/ProjectionContext'
 import { useAssumptions } from '@/contexts/AssumptionsContext'
+import { ClipboardList } from 'lucide-react'
 
 export function IncomeTab() {
   const projection = useProjectionContext()
   const assumptions = useAssumptions()
-  const portfolioAtRetirement = getPortfolioAtRetirement(projection.realProjectionData)
+  const portfolioAtRetirement = getPortfolioAtRetirement(projection.currentProjectionData)
 
   return (
     <div className="space-y-6">
@@ -16,11 +17,16 @@ export function IncomeTab() {
         annualCpp={projection.totalAnnualCpp}
         withdrawalRate={assumptions.withdrawalRate}
         retirementAge={projection.householdRetirementAge}
+        showRealValues={assumptions.showRealValues}
+        inflationRate={assumptions.inflationRate}
+        yearsToRetirement={projection.yearsToRetirement}
+        plannedGifts={assumptions.plannedGifts}
       />
 
-      <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-900 rounded-lg shadow-lg border border-slate-200 dark:border-gray-700 p-4 sm:p-6">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
-          📋 Income Sources Explained
+      <div className="card p-4 sm:p-6">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+          <ClipboardList className="w-5 h-5 text-primary" />
+          Income Sources Explained
         </h3>
         <div className="space-y-4 text-sm text-gray-600 dark:text-gray-400">
           <div>
@@ -29,11 +35,11 @@ export function IncomeTab() {
           </div>
           <div>
             <strong className="text-gray-800 dark:text-gray-200">CPP (Canada Pension Plan):</strong>{' '}
-            Government pension based on your contributions during working years. Maximum in 2024 is about $1,364/month.
+            Government pension based on your contributions during working years. Maximum in 2026 is about $1,508/month.
           </div>
           <div>
             <strong className="text-gray-800 dark:text-gray-200">OAS (Old Age Security):</strong>{' '}
-            Government benefit available at age 65. Maximum in 2024 is about $691/month. Clawed back at high income levels.
+            Government benefit available at age 65. Maximum in 2026 is about $752/month. Clawed back at high income levels (starting ~$95k).
           </div>
           <div>
             <strong className="text-gray-800 dark:text-gray-200">Employer Pension:</strong>{' '}

@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { ProjectionDataPoint } from '@/types/household'
-import { calculateRetirementGoal, getPortfolioAtRetirement, type RetirementGoalResult } from '@/lib/calculations'
+import { calculateRetirementGoal, getPortfolioAtRetirement, getPortfolioAfterGifts, type RetirementGoalResult, type PlannedGiftLite } from '@/lib/calculations'
 
 interface UseRetirementGoalParams {
   currentProjectionData: ProjectionDataPoint[]
@@ -13,10 +13,14 @@ interface UseRetirementGoalParams {
   inflationRate: number
   currentAnnualContributions: number
   currentPortfolio: number
+  showRealValues?: boolean
+  plannedGifts?: PlannedGiftLite[]
+  retirementTaxRate?: number
 }
 
 export interface RetirementGoalWithIncome extends RetirementGoalResult {
   projectedAnnualIncome: number
+  afterTaxProjectedAnnualIncome: number
 }
 
 export function useRetirementGoal({
@@ -30,6 +34,9 @@ export function useRetirementGoal({
   inflationRate,
   currentAnnualContributions,
   currentPortfolio,
+  showRealValues = true,
+  plannedGifts = [],
+  retirementTaxRate = 20,
 }: UseRetirementGoalParams): RetirementGoalWithIncome {
   const goal = useMemo(
     () => calculateRetirementGoal({
@@ -43,14 +50,27 @@ export function useRetirementGoal({
       inflationRate,
       currentAnnualContributions,
       currentPortfolio,
+      showRealValues,
+      plannedGifts,
+      retirementTaxRate,
     }),
-    [currentProjectionData, annualIncome, annualPension, replacementRate, withdrawalRate, yearsToRetirement, expectedReturn, inflationRate, currentAnnualContributions, currentPortfolio]
+    [currentProjectionData, annualIncome, annualPension, replacementRate, withdrawalRate, yearsToRetirement, expectedReturn, inflationRate, currentAnnualContributions, currentPortfolio, showRealValues, plannedGifts, retirementTaxRate]
   )
+
+  const inflationFactor = showRealValues
+    ? 1
+    : Math.pow(1 + inflationRate / 100, Math.max(0, yearsToRetirement))
 
   const projectedAnnualIncome = useMemo(
-    () => (getPortfolioAtRetirement(currentProjectionData) * (withdrawalRate / 100)) + annualPension,
-    [currentProjectionData, withdrawalRate, annualPension]
+    () => (getPortfolioAfterGifts(getPortfolioAtRetirement(currentProjectionData), plannedGifts, yearsToRetirement, showRealValues, inflationRate) * (withdrawalRate / 100)) + annualPension * inflationFactor,
+    [currentProjectionData, withdrawalRate, annualPension, inflationFactor, plannedGifts, yearsToRetirement, showRealValues, inflationRate]
   )
 
-  return { ...goal, projectedAnnualIncome }
+  const afterTaxProjectedAnnualIncome = useMemo(
+    () => (goal.afterTaxPortfolioAfterGifts * (withdrawalRate / 100)) + annualPension * inflationFactor,
+    [goal.afterTaxPortfolioAfterGifts, withdrawalRate, annualPension, inflationFactor]
+  )
+
+  return { ...goal, projectedAnnualIncome, afterTaxProjectedAnnualIncome }
 }
+

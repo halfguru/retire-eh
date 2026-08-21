@@ -5,6 +5,7 @@ import { PeopleProvider, usePeople } from '@/contexts/PeopleContext'
 import { AssumptionsProvider, useAssumptions } from '@/contexts/AssumptionsContext'
 import { ProjectionProvider, useProjectionContext } from '@/contexts/ProjectionContext'
 import { usePersistence } from '@/hooks/usePersistence'
+import { AlertTriangle } from 'lucide-react'
 import { exportToYAML, downloadYAML, uploadYAML } from '@/lib/yaml-utils'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
@@ -12,11 +13,10 @@ import { Tabs } from '@/components/Tabs'
 import { PlanTab } from '@/components/dashboard/PlanTab'
 import { OverviewTab } from '@/components/dashboard/OverviewTab'
 import { ProjectionsTab } from '@/components/dashboard/ProjectionsTab'
-import { IncomeTab } from '@/components/dashboard/IncomeTab'
 import { LearnTab } from '@/components/dashboard/LearnTab'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 
-type TabId = 'overview' | 'plan' | 'projections' | 'income' | 'learn'
+type TabId = 'overview' | 'plan' | 'projections' | 'learn'
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState<TabId>('plan')
@@ -33,7 +33,9 @@ function AppContent() {
         inflationRate: assumptions.inflationRate,
         replacementRate: assumptions.replacementRate,
         withdrawalRate: assumptions.withdrawalRate,
+        retirementTaxRate: assumptions.retirementTaxRate,
         showRealValues: assumptions.showRealValues,
+        plannedGifts: assumptions.plannedGifts,
       },
       peopleApi.people
     )
@@ -48,7 +50,9 @@ function AppContent() {
     assumptions.setInflationRate(plan.assumptions.inflationRate)
     assumptions.setReplacementRate(plan.assumptions.replacementRate)
     assumptions.setWithdrawalRate(plan.assumptions.withdrawalRate)
+    assumptions.setRetirementTaxRate(plan.assumptions.retirementTaxRate)
     assumptions.setShowRealValues(plan.assumptions.showRealValues)
+    assumptions.setPlannedGifts(plan.assumptions.plannedGifts ?? [])
     peopleApi.setPeople(plan.people)
     if (plan.people.length > 0) {
       peopleApi.setSelectedPersonId(plan.people[0].id)
@@ -63,15 +67,13 @@ function AppContent() {
         return <OverviewTab />
       case 'projections':
         return <ProjectionsTab />
-      case 'income':
-        return <IncomeTab />
       case 'learn':
         return <LearnTab />
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+    <div className="min-h-screen bg-transparent flex flex-col">
       <Header
         isDarkMode={isDarkMode}
         showRealValues={assumptions.showRealValues}
@@ -98,7 +100,7 @@ function AppContent() {
         <ErrorBoundary>
           {projection.wasmError ? (
             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-6 text-center">
-              <div className="text-4xl mb-3">⚠️</div>
+              <div className="mb-3"><AlertTriangle className="w-10 h-10 text-warning" /></div>
               <h2 className="text-lg font-semibold text-amber-700 dark:text-amber-300 mb-2">
                 Calculation engine failed to load
               </h2>

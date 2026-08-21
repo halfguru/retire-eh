@@ -5,7 +5,8 @@ use wasm_bindgen::prelude::*;
 
 pub use calculations::{
     calculate_additional_annual_savings, calculate_projection, calculate_simple_projection,
-    calculate_yearly_projections, SimpleProjection,
+    calculate_yearly_projections, run_monte_carlo, simulate_retirement_paths, MonteCarloParams,
+    MonteCarloYear, RetirementPathParams, RetirementPathYear, SimpleProjection,
 };
 pub use models::{
     AccountBalance, Assumptions, ChildInfo, ContributionConfig, HouseholdConfig,
@@ -140,5 +141,35 @@ impl RetirementCalculator {
             inflation_rate,
             current_annual_contributions,
         )
+    }
+
+    #[wasm_bindgen]
+    pub fn run_monte_carlo(&self, params_js: JsValue) -> Result<JsValue, JsValue> {
+        let params: MonteCarloParams = serde_wasm_bindgen::from_value(params_js).map_err(|e| {
+            JsValue::from_str(&format!("Failed to parse Monte Carlo params: {}", e))
+        })?;
+
+        let years = run_monte_carlo(&params);
+
+        serde_wasm_bindgen::to_value(&years).map_err(|e| {
+            JsValue::from_str(&format!("Failed to serialize Monte Carlo results: {}", e))
+        })
+    }
+
+    #[wasm_bindgen]
+    pub fn simulate_retirement_paths(&self, params_js: JsValue) -> Result<JsValue, JsValue> {
+        let params: RetirementPathParams =
+            serde_wasm_bindgen::from_value(params_js).map_err(|e| {
+                JsValue::from_str(&format!("Failed to parse retirement path params: {}", e))
+            })?;
+
+        let years = simulate_retirement_paths(&params);
+
+        serde_wasm_bindgen::to_value(&years).map_err(|e| {
+            JsValue::from_str(&format!(
+                "Failed to serialize retirement path results: {}",
+                e
+            ))
+        })
     }
 }

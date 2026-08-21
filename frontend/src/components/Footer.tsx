@@ -2,7 +2,7 @@ declare const __APP_VERSION__: string
 
 export function Footer() {
   return (
-    <footer className="py-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+    <footer className="py-4 border-t border-gray-200/70 dark:border-gray-700/70 bg-white/80 dark:bg-gray-900/70 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 flex justify-center items-center gap-3">
         <a
           href="https://github.com/halfguru/retire-eh"

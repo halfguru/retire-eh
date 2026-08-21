@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useMemo, type ReactNode } from 'react'
+import { createContext, useContext, useMemo, type ReactNode } from 'react'
 import { usePeople } from './PeopleContext'
 import { useAssumptions } from './AssumptionsContext'
 import { useProjection } from '@/hooks/useProjection'
@@ -8,87 +8,114 @@ import type { ProjectionDataPoint } from '@/types/projection'
 interface ProjectionContextValueTyped {
   wasmLoaded: boolean
   wasmError: string | null
-  portfolioPersonId: string | null
-  setPortfolioPersonId: (id: string | null) => void
   projectionData: ProjectionDataPoint[]
-  individualProjectionData: ProjectionDataPoint[]
-  currentProjectionData: ProjectionDataPoint[]
   realProjectionData: ProjectionDataPoint[]
+  currentProjectionData: ProjectionDataPoint[]
   householdRetirementAge: number
   yearsToRetirement: number
+  minCurrentAge: number
   totalAnnualIncome: number
   totalAnnualPension: number
   totalAnnualCpp: number
   totalPortfolio: number
   totalAnnualContributions: number
-  selectedPersonPortfolio: number
-  selectedPersonAccounts: import('@/types/person').Account[]
-  selectedPortfolioPerson: import('@/types/person').Person | undefined
-  portfolioView: 'combined' | 'individual'
 }
 
 const ProjectionContext = createContext<ProjectionContextValueTyped | null>(null)
+
+// Each person accumulates to their own retirement age; after that their
+// portfolio is frozen (no more contributions, pre-retirement drawdown is out
+// of scope here). We project every person on their own timeline and sum the
+// result by age so contributions stop per person, not at a single household age.
+function buildCombinedProjection(
+  people: { currentAge: number; retirementAge: number; accounts: import('@/types/person').Account[] }[],
+  calculateProjection: (
+    accounts: import('@/types/person').Account[],
+    retirementAge: number,
+    baseAge: number,
+    expectedReturn: number,
+    inflationRate: number,
+    showRealValues: boolean,
+    yearsToRetirement: number
+  ) => ProjectionDataPoint[],
+  expectedReturn: number,
+  inflationRate: number,
+  showRealValues: boolean,
+  householdRetirementAge: number
+): ProjectionDataPoint[] {
+  if (people.length === 0) return []
+
+  const baseAge = Math.min(...people.map(p => p.currentAge))
+  const endAge = householdRetirementAge
+  const currentYear = new Date().getFullYear()
+
+  const perPerson = people.map(p =>
+    calculateProjection(p.accounts, p.retirementAge, p.currentAge, expectedReturn, inflationRate, showRealValues, p.retirementAge - p.currentAge)
+  )
+
+  const combined: ProjectionDataPoint[] = []
+  for (let age = baseAge; age <= endAge; age++) {
+    let total = 0
+    let rrsp = 0
+    let tfsa = 0
+    let hasRrsp = false
+    let hasTfsa = false
+
+    people.forEach((p, i) => {
+      const proj = perPerson[i]
+      if (proj.length === 0) return
+      const point = age < p.currentAge
+        ? proj[0]
+        : age > p.retirementAge
+          ? proj[proj.length - 1]
+          : proj[age - p.currentAge]
+      total += point.Total ?? 0
+      if (point.RRSP !== undefined) { rrsp += point.RRSP; hasRrsp = true }
+      if (point.TFSA !== undefined) { tfsa += point.TFSA; hasTfsa = true }
+    })
+
+    combined.push({
+      year: currentYear + (age - baseAge),
+      age,
+      RRSP: hasRrsp ? rrsp : undefined,
+      TFSA: hasTfsa ? tfsa : undefined,
+      Total: total
+    })
+  }
+  return combined
+}
 
 export function ProjectionProvider({ children }: { children: ReactNode }) {
   const { people } = usePeople()
   const { expectedReturn, inflationRate, showRealValues } = useAssumptions()
   const { wasmLoaded, wasmError, calculateProjection } = useProjection()
 
-  const [portfolioPersonId, setPortfolioPersonId] = useState<string | null>(null)
-
-  const effectivePortfolioPersonId = useMemo(() => {
-    if (people.length === 0) return null
-    if (portfolioPersonId === null) return null
-    return people.some(p => p.id === portfolioPersonId) ? portfolioPersonId : null
-  }, [people, portfolioPersonId])
-
-  const householdRetirementAge = Math.max(...people.map(p => p.retirementAge))
-  const yearsToRetirement = householdRetirementAge - Math.min(...people.map(p => p.currentAge))
+  const householdRetirementAge = people.length ? Math.max(...people.map(p => p.retirementAge)) : 0
+  const minCurrentAge = people.length ? Math.min(...people.map(p => p.currentAge)) : 0
+  const yearsToRetirement = people.length ? householdRetirementAge - minCurrentAge : 0
   const totalAnnualIncome = people.reduce((sum, p) => sum + (p.annualIncome || 0), 0)
   const totalAnnualPension = people.reduce((sum, p) => sum + (p.annualPension || 0), 0)
   const totalAnnualCpp = people.reduce((sum, p) => sum + (p.annualCpp || 0), 0)
   const allAccounts = people.flatMap(p => p.accounts)
   const totalPortfolio = allAccounts.reduce((sum, acc) => sum + (acc.balance || 0), 0)
   const totalAnnualContributions = allAccounts.reduce((sum, acc) => sum + (acc.annualContribution || 0), 0)
-  const selectedPortfolioPerson = effectivePortfolioPersonId ? people.find(p => p.id === effectivePortfolioPersonId) : undefined
-  const selectedPersonAccounts = useMemo(() => selectedPortfolioPerson?.accounts || [], [selectedPortfolioPerson])
-  const selectedPersonPortfolio = useMemo(() => selectedPersonAccounts.reduce((sum, acc) => sum + (acc.balance || 0), 0), [selectedPersonAccounts])
-  const portfolioView = effectivePortfolioPersonId ? 'individual' : 'combined'
 
-  const projectionData = useMemo(() => {
-    const youngestAge = Math.min(...people.map(p => p.currentAge))
-    return calculateProjection(allAccounts, householdRetirementAge, youngestAge, expectedReturn, inflationRate, showRealValues, yearsToRetirement)
-  }, [allAccounts, householdRetirementAge, expectedReturn, inflationRate, showRealValues, calculateProjection, yearsToRetirement, people])
-
-  const individualProjectionData = useMemo(() => {
-    if (!selectedPortfolioPerson) return []
-    const baseAge = selectedPortfolioPerson.currentAge
-    return calculateProjection(selectedPersonAccounts, selectedPortfolioPerson.retirementAge, baseAge, expectedReturn, inflationRate, showRealValues, yearsToRetirement)
-  }, [selectedPortfolioPerson, selectedPersonAccounts, expectedReturn, inflationRate, showRealValues, calculateProjection, yearsToRetirement])
-
-  const currentProjectionData = portfolioView === 'combined' ? projectionData : individualProjectionData
-
-  const realProjectionData = useMemo(() => {
-    if (portfolioView === 'combined') {
-      const youngestAge = Math.min(...people.map(p => p.currentAge))
-      return calculateProjection(allAccounts, householdRetirementAge, youngestAge, expectedReturn, inflationRate, true, yearsToRetirement)
-    } else if (selectedPortfolioPerson) {
-      const baseAge = selectedPortfolioPerson.currentAge
-      return calculateProjection(selectedPersonAccounts, selectedPortfolioPerson.retirementAge, baseAge, expectedReturn, inflationRate, true, yearsToRetirement)
-    }
-    return []
-  }, [allAccounts, householdRetirementAge, expectedReturn, inflationRate, calculateProjection, yearsToRetirement, people, portfolioView, selectedPortfolioPerson, selectedPersonAccounts])
+  const projectionData = useMemo(
+    () => buildCombinedProjection(people, calculateProjection, expectedReturn, inflationRate, showRealValues, householdRetirementAge),
+    [people, calculateProjection, expectedReturn, inflationRate, showRealValues, householdRetirementAge]
+  )
+  const realProjectionData = useMemo(
+    () => buildCombinedProjection(people, calculateProjection, expectedReturn, inflationRate, true, householdRetirementAge),
+    [people, calculateProjection, expectedReturn, inflationRate, householdRetirementAge]
+  )
 
   return (
     <ProjectionContext.Provider value={{
       wasmLoaded, wasmError,
-      portfolioPersonId: effectivePortfolioPersonId, setPortfolioPersonId,
-      projectionData, individualProjectionData, currentProjectionData, realProjectionData,
-      householdRetirementAge, yearsToRetirement,
+      projectionData, realProjectionData, currentProjectionData: projectionData,
+      householdRetirementAge, yearsToRetirement, minCurrentAge,
       totalAnnualIncome, totalAnnualPension, totalAnnualCpp,
       totalPortfolio, totalAnnualContributions,
-      selectedPersonPortfolio, selectedPersonAccounts, selectedPortfolioPerson,
-      portfolioView,
     }}>
       {children}
     </ProjectionContext.Provider>

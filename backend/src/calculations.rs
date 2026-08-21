@@ -2,6 +2,8 @@ use crate::models::{
     AccountBalance, Assumptions, ChildInfo, ContributionConfig, HouseholdConfig,
     RetirementProjection, YearlyProjection,
 };
+#[cfg(target_arch = "wasm32")]
+use js_sys;
 
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -203,4 +205,230 @@ pub fn calculate_additional_annual_savings(
 
     let final_result = (low + high) / 2.0;
     f64::max(0.0, final_result - current_annual_contributions).round()
+}
+
+// --- Simulation engines (Monte Carlo accumulation + retirement drawdown) ---
+//
+// These mirror the monthly-compounding model used by calculate_yearly_projections
+// but sample returns randomly to show the distribution of outcomes, not just the
+// deterministic path. Returns are nominal; results are deflated to today's
+// dollars using the supplied inflation rate, matching the frontend's real view.
+
+#[cfg(not(target_arch = "wasm32"))]
+#[allow(clippy::missing_const_for_thread_local)]
+fn random_f64() -> f64 {
+    use std::cell::Cell;
+    thread_local! {
+        static SEED: Cell<u64> = Cell::new(123456789);
+    }
+    SEED.with(|cell| {
+        let mut x = cell.get();
+        x ^= x << 13;
+        x ^= x >> 7;
+        x ^= x << 17;
+        cell.set(x);
+        (x as f64) / (u64::MAX as f64)
+    })
+}
+
+#[cfg(target_arch = "wasm32")]
+fn random_f64() -> f64 {
+    js_sys::Math::random()
+}
+
+fn gaussian() -> f64 {
+    let u = loop {
+        let u = random_f64();
+        if u != 0.0 {
+            break u;
+        }
+    };
+    let v = loop {
+        let v = random_f64();
+        if v != 0.0 {
+            break v;
+        }
+    };
+    (-2.0 * u.ln()).sqrt() * (2.0 * std::f64::consts::PI * v).cos()
+}
+
+fn percentile(sorted: &[f64], p: f64) -> f64 {
+    if sorted.is_empty() {
+        return 0.0;
+    }
+    let idx = (sorted.len() as f64 - 1.0) * p;
+    let lo = idx.floor() as usize;
+    let hi = idx.ceil() as usize;
+    if lo == hi {
+        return sorted[lo];
+    }
+    sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo as f64)
+}
+
+fn default_volatility() -> f64 {
+    0.13
+}
+
+fn default_sims() -> u32 {
+    500
+}
+
+fn default_true() -> bool {
+    true
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MonteCarloParams {
+    pub initial_balance: f64,
+    pub monthly_contribution: f64,
+    pub months: u32,
+    pub expected_return_pct: f64,
+    pub inflation_pct: f64,
+    pub start_age: u32,
+    #[serde(default = "default_volatility")]
+    pub annual_volatility: f64,
+    #[serde(default = "default_sims")]
+    pub sims: u32,
+    #[serde(default = "default_true")]
+    pub show_real_values: bool,
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MonteCarloYear {
+    pub age: u32,
+    pub p10: f64,
+    pub p25: f64,
+    pub p50: f64,
+    pub p75: f64,
+    pub p90: f64,
+}
+
+// Runs `sims` accumulation simulations with randomly sampled monthly returns and
+// returns per-age percentile bands (10/25/50/75/90) in today's dollars.
+pub fn run_monte_carlo(params: &MonteCarloParams) -> Vec<MonteCarloYear> {
+    let monthly_mean = params.expected_return_pct / 100.0 / 12.0;
+    let monthly_sd = params.annual_volatility / 12.0_f64.sqrt();
+    let years = (params.months / 12) as usize;
+    let sims = params.sims.max(1) as usize;
+
+    let mut per_year: Vec<Vec<f64>> = (0..=years).map(|_| Vec::with_capacity(sims)).collect();
+
+    for _ in 0..sims {
+        let mut balance = params.initial_balance;
+        per_year[0].push(balance);
+        for m in 1..=params.months {
+            let r = monthly_mean + monthly_sd * gaussian();
+            balance = balance * (1.0 + r) + params.monthly_contribution;
+            if balance < 0.0 {
+                balance = 0.0;
+            }
+            if m % 12 == 0 {
+                per_year[(m / 12) as usize].push(balance);
+            }
+        }
+    }
+
+    (0..=years)
+        .map(|y| {
+            let mut vals = std::mem::take(&mut per_year[y]);
+            vals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+            let inflation_factor = (1.0 + params.inflation_pct / 100.0).powi(y as i32);
+            let deflate = |v: f64| {
+                if params.show_real_values {
+                    v / inflation_factor
+                } else {
+                    v
+                }
+            };
+            MonteCarloYear {
+                age: params.start_age + y as u32,
+                p10: deflate(percentile(&vals, 0.1)),
+                p25: deflate(percentile(&vals, 0.25)),
+                p50: deflate(percentile(&vals, 0.5)),
+                p75: deflate(percentile(&vals, 0.75)),
+                p90: deflate(percentile(&vals, 0.9)),
+            }
+        })
+        .collect()
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RetirementPathParams {
+    pub start_balance: f64,
+    pub expected_return_pct: f64,
+    pub inflation_pct: f64,
+    pub withdrawal_rate_pct: f64,
+    pub start_age: u32,
+    pub end_age: u32,
+    #[serde(default = "default_volatility")]
+    pub annual_volatility: f64,
+    #[serde(default = "default_sims")]
+    pub sims: u32,
+    #[serde(default = "default_true")]
+    pub show_real_values: bool,
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RetirementPathYear {
+    pub age: u32,
+    pub p10: f64,
+    pub p25: f64,
+    pub p50: f64,
+    pub p75: f64,
+    pub p90: f64,
+}
+
+// Simulates the retirement (decumulation) phase with randomly sampled returns and
+// a constant real withdrawal (the 4% rule). Returns per-age percentile bands in
+// today's dollars so the chart shows both the median and the downside drawdown.
+pub fn simulate_retirement_paths(params: &RetirementPathParams) -> Vec<RetirementPathYear> {
+    let monthly_mean = if params.show_real_values {
+        let real_annual =
+            (1.0 + params.expected_return_pct / 100.0) / (1.0 + params.inflation_pct / 100.0) - 1.0;
+        real_annual / 12.0
+    } else {
+        params.expected_return_pct / 100.0 / 12.0
+    };
+    let monthly_sd = params.annual_volatility / 12.0_f64.sqrt();
+    let monthly_withdrawal = (params.start_balance * (params.withdrawal_rate_pct / 100.0)) / 12.0;
+    let years = (params.end_age - params.start_age) as usize;
+    let sims = params.sims.max(1) as usize;
+
+    let mut per_year: Vec<Vec<f64>> = (0..=years).map(|_| Vec::with_capacity(sims)).collect();
+
+    for _ in 0..sims {
+        let mut balance = params.start_balance;
+        per_year[0].push(balance);
+        for age in (params.start_age + 1)..=params.end_age {
+            for _ in 0..12 {
+                let r = monthly_mean + monthly_sd * gaussian();
+                balance = balance * (1.0 + r) - monthly_withdrawal;
+                if balance < 0.0 {
+                    balance = 0.0;
+                }
+            }
+            per_year[(age - params.start_age) as usize].push(balance);
+        }
+    }
+
+    (0..=years)
+        .map(|y| {
+            let mut vals = std::mem::take(&mut per_year[y]);
+            vals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+            let inflation_factor = (1.0 + params.inflation_pct / 100.0).powi(y as i32);
+            let deflate = |v: f64| v / inflation_factor;
+            RetirementPathYear {
+                age: params.start_age + y as u32,
+                p10: deflate(percentile(&vals, 0.1)),
+                p25: deflate(percentile(&vals, 0.25)),
+                p50: deflate(percentile(&vals, 0.5)),
+                p75: deflate(percentile(&vals, 0.75)),
+                p90: deflate(percentile(&vals, 0.9)),
+            }
+        })
+        .collect()
 }
