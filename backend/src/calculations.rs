@@ -215,6 +215,7 @@ pub fn calculate_additional_annual_savings(
 // dollars using the supplied inflation rate, matching the frontend's real view.
 
 #[cfg(not(target_arch = "wasm32"))]
+#[allow(clippy::missing_const_for_thread_local)]
 fn random_f64() -> f64 {
     use std::cell::Cell;
     thread_local! {
