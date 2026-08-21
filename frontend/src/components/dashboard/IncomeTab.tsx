@@ -15,6 +15,7 @@ export function IncomeTab() {
         portfolioAtRetirement={portfolioAtRetirement}
         annualPension={projection.totalAnnualPension}
         annualCpp={projection.totalAnnualCpp}
+        annualOas={projection.totalAnnualOas}
         withdrawalRate={assumptions.withdrawalRate}
         retirementAge={projection.householdRetirementAge}
         showRealValues={assumptions.showRealValues}
