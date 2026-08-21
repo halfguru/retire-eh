@@ -17,6 +17,7 @@ interface ProjectionContextValueTyped {
   totalAnnualIncome: number
   totalAnnualPension: number
   totalAnnualCpp: number
+  totalAnnualOas: number
   totalPortfolio: number
   totalAnnualContributions: number
 }
@@ -96,6 +97,10 @@ export function ProjectionProvider({ children }: { children: ReactNode }) {
   const totalAnnualIncome = people.reduce((sum, p) => sum + (p.annualIncome || 0), 0)
   const totalAnnualPension = people.reduce((sum, p) => sum + (p.annualPension || 0), 0)
   const totalAnnualCpp = people.reduce((sum, p) => sum + (p.annualCpp || 0), 0)
+  const totalAnnualOas = people.reduce((sum, p) => {
+    const ageAtRetirement = p.currentAge + yearsToRetirement
+    return sum + (ageAtRetirement >= 65 ? 9024 : 0)
+  }, 0)
   const allAccounts = people.flatMap(p => p.accounts)
   const totalPortfolio = allAccounts.reduce((sum, acc) => sum + (acc.balance || 0), 0)
   const totalAnnualContributions = allAccounts.reduce((sum, acc) => sum + (acc.annualContribution || 0), 0)
@@ -114,7 +119,7 @@ export function ProjectionProvider({ children }: { children: ReactNode }) {
       wasmLoaded, wasmError,
       projectionData, realProjectionData, currentProjectionData: projectionData,
       householdRetirementAge, yearsToRetirement, minCurrentAge,
-      totalAnnualIncome, totalAnnualPension, totalAnnualCpp,
+      totalAnnualIncome, totalAnnualPension, totalAnnualCpp, totalAnnualOas,
       totalPortfolio, totalAnnualContributions,
     }}>
       {children}

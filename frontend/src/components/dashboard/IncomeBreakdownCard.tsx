@@ -7,6 +7,7 @@ interface IncomeBreakdownCardProps {
   portfolioAtRetirement: number
   annualPension: number
   annualCpp: number
+  annualOas: number
   withdrawalRate: number
   retirementAge: number
   showRealValues: boolean
@@ -15,8 +16,6 @@ interface IncomeBreakdownCardProps {
   plannedGifts: PlannedGiftLite[]
 }
 
-const OAS_MAX_2026 = 9024
-
 const DONUT_R = 52
 const DONUT_C = 2 * Math.PI * DONUT_R
 
@@ -24,6 +23,7 @@ export function IncomeBreakdownCard({
   portfolioAtRetirement,
   annualPension,
   annualCpp,
+  annualOas,
   withdrawalRate,
   retirementAge,
   showRealValues,
@@ -41,7 +41,7 @@ export function IncomeBreakdownCard({
   const portfolioAfterGifts = getPortfolioAfterGifts(portfolioAtRetirement, plannedGifts, yearsToRetirement, showRealValues, inflationRate)
   const giftTotal = portfolioAtRetirement - portfolioAfterGifts
   const portfolioWithdrawal = portfolioAfterGifts * (withdrawalRate / 100)
-  const oasEstimate = (retirementAge >= 65 ? OAS_MAX_2026 : 0) * inflationFactor
+  const oasEstimate = annualOas * inflationFactor
   const cppEstimate = annualCpp * inflationFactor
   const pensionEstimate = annualPension * inflationFactor
 

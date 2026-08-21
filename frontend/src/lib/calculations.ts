@@ -1,5 +1,4 @@
 import type { ProjectionDataPoint } from '@/types/household'
-import { getCalculator } from '@/lib/wasm-loader'
 
 export function getPortfolioAtRetirement(data: ProjectionDataPoint[]): number {
   return data.length > 0 ? data[data.length - 1].Total : 0
@@ -77,8 +76,6 @@ export function calculateRetirementGoal(params: {
     yearsToRetirement,
     expectedReturn,
     inflationRate,
-    currentAnnualContributions,
-    currentPortfolio,
     showRealValues = true,
     plannedGifts = [],
     retirementTaxRate = 20,
@@ -104,7 +101,7 @@ export function calculateRetirementGoal(params: {
   const gap = requiredPortfolio - portfolioAtRetirement
 
   const additionalAnnualSavings = yearsToRetirement > 0
-    ? calculateAdditionalAnnualSavings(currentProjectionData, currentPortfolio, requiredPortfolio, yearsToRetirement, expectedReturn, inflationRate, currentAnnualContributions, gap)
+    ? calculateAdditionalAnnualSavings(gap, yearsToRetirement, expectedReturn, inflationRate)
     : 0
 
   // Calculate after-tax metrics (deducting estimated tax rate on the RRSP portion)
@@ -115,7 +112,7 @@ export function calculateRetirementGoal(params: {
   const afterTaxProgress = requiredPortfolio > 0 ? Math.min(100, (afterTaxPortfolioAtRetirement / requiredPortfolio) * 100) : 0
   const afterTaxGap = requiredPortfolio - afterTaxPortfolioAtRetirement
   const afterTaxAdditionalAnnualSavings = yearsToRetirement > 0
-    ? calculateAdditionalAnnualSavings(currentProjectionData, currentPortfolio, requiredPortfolio + (rrspAtRetirement * (retirementTaxRate / 100)), yearsToRetirement, expectedReturn, inflationRate, currentAnnualContributions, afterTaxGap)
+    ? calculateAdditionalAnnualSavings(afterTaxGap, yearsToRetirement, expectedReturn, inflationRate)
     : 0
 
   return {
@@ -137,33 +134,18 @@ export function calculateRetirementGoal(params: {
 }
 
 function calculateAdditionalAnnualSavings(
-  currentProjectionData: ProjectionDataPoint[],
-  currentPortfolio: number,
-  requiredPortfolio: number,
+  gap: number,
   yearsToRetirement: number,
   expectedReturn: number,
   inflationRate: number,
-  currentAnnualContributions: number,
-  gap: number,
 ): number {
-  const initialPortfolio = currentProjectionData.length > 0 ? currentProjectionData[0].Total : currentPortfolio
-  try {
-    const calculator = getCalculator()
-    return calculator.calculate_additional_annual_savings(
-      initialPortfolio,
-      requiredPortfolio,
-      yearsToRetirement,
-      expectedReturn,
-      inflationRate,
-      currentAnnualContributions,
-    )
-  } catch {
-    const monthlyNominalRate = expectedReturn / 100 / 12
-    const monthlyInflationRate = inflationRate / 100 / 12
-    const months = yearsToRetirement * 12
-    const monthlyRealRate = monthlyNominalRate - monthlyInflationRate
-    if (monthlyRealRate <= 0) return gap / yearsToRetirement
-    const monthlyRealSavings = gap * monthlyRealRate / ((1 + monthlyRealRate) ** months - 1)
-    return monthlyRealSavings * 12
-  }
+  if (gap <= 0 || yearsToRetirement <= 0) return 0
+
+  const monthlyNominalRate = expectedReturn / 100 / 12
+  const monthlyInflationRate = inflationRate / 100 / 12
+  const months = yearsToRetirement * 12
+  const monthlyRealRate = monthlyNominalRate - monthlyInflationRate
+  if (monthlyRealRate <= 0) return Math.round(gap / yearsToRetirement)
+  const monthlyRealSavings = gap * monthlyRealRate / ((1 + monthlyRealRate) ** months - 1)
+  return Math.round(monthlyRealSavings * 12)
 }
