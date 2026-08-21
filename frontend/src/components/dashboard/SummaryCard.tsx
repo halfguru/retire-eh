@@ -27,6 +27,7 @@ export function SummaryCard(props: SummaryCardProps) {
 
   const isOnTrack = progress >= 100
   const isAfterTaxOnTrack = afterTaxProgress >= 100
+  const isOverallOnTrack = isOnTrack && (goalProps.retirementTaxRate !== undefined && goalProps.retirementTaxRate > 0 ? isAfterTaxOnTrack : true)
   const { yearsToRetirement, showRealValues } = goalProps
 
   const portfolioAfterGifts = getPortfolioAfterGifts(getPortfolioAtRetirement(currentProjectionData), goalProps.plannedGifts ?? [], yearsToRetirement, goalProps.showRealValues, goalProps.inflationRate)
@@ -34,21 +35,21 @@ export function SummaryCard(props: SummaryCardProps) {
   const guaranteedIncome = projectedAnnualIncome - portfolioWithdrawal
 
   return (
-    <div className={`animate-fade-in-up rounded-2xl border-2 p-6 sm:p-8 ${isOnTrack
+    <div className={`animate-fade-in-up rounded-2xl border-2 p-6 sm:p-8 ${isOverallOnTrack
       ? 'bg-gradient-to-br from-emerald-50/60 to-emerald-100/40 dark:from-emerald-950/20 dark:to-emerald-900/10 border-emerald-300 dark:border-emerald-800'
       : 'bg-gradient-to-br from-amber-50/60 to-amber-100/40 dark:from-amber-950/20 dark:to-amber-900/10 border-amber-300 dark:border-amber-800'
     }`}>
       {/* Top Banner Status */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200/50 dark:border-gray-700/50 pb-6 mb-6">
         <div className="flex items-center gap-3">
-          {isOnTrack ? (
+          {isOverallOnTrack ? (
             <CheckCircle2 className="w-8 h-8 text-secondary shrink-0" />
           ) : (
             <AlertTriangle className="w-8 h-8 text-error shrink-0" />
           )}
           <div>
-            <h2 className={`text-xl sm:text-2xl font-bold ${isOnTrack ? 'text-emerald-700 dark:text-emerald-300' : 'text-amber-700 dark:text-amber-300'}`}>
-              {isOnTrack ? "You're on Track!" : 'Plan Adjustment Needed'}
+            <h2 className={`text-xl sm:text-2xl font-bold ${isOverallOnTrack ? 'text-emerald-700 dark:text-emerald-300' : 'text-amber-700 dark:text-amber-300'}`}>
+              {isOverallOnTrack ? "You're on Track!" : 'Plan Adjustment Needed'}
             </h2>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               Based on target retirement age of {householdRetirementAge}
