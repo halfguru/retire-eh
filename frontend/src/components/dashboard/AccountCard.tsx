@@ -28,13 +28,13 @@ export function AccountCard({ account, onDelete, onUpdateBalance, onUpdateContri
 
       <div className="flex-1 grid grid-cols-1 xs:grid-cols-2 gap-2 w-full">
         <div className="flex items-center justify-between sm:justify-start gap-1.5 w-full">
-          <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0 w-14 sm:w-auto">Balance</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0 w-14">Balance</span>
           <div className="flex-1 w-full">
             <NumberInput value={account.balance || 0} onChange={onUpdateBalance} step={1000} min={0} />
           </div>
         </div>
         <div className="flex items-center justify-between sm:justify-start gap-1.5 w-full">
-          <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0 w-14 sm:w-auto">Annual</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0 w-14">Annual</span>
           <div className="flex-1 w-full">
             <NumberInput value={account.annualContribution || 0} onChange={onUpdateContribution} step={100} min={0} />
           </div>
