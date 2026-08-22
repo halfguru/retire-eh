@@ -72,7 +72,7 @@ export function PersonForm({
         <div>
           <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
             Annual Income
-            <InfoTooltip text="Annual income before retirement" />
+            <InfoTooltip text="Your current pre-tax annual income (used to calculate your retirement income target)" />
           </label>
           <NumberInput
             value={person.annualIncome || 0}
