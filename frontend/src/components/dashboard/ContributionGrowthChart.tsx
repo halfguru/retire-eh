@@ -17,16 +17,20 @@ interface ContributionGrowthChartProps {
   isDarkMode: boolean
   projectionData: { age: number; Total: number }[]
   annualContribution: number
+  showRealValues: boolean
+  inflationRate: number
 }
 
 export function ContributionGrowthChart({
   isDarkMode,
   projectionData,
   annualContribution,
+  showRealValues,
+  inflationRate,
 }: ContributionGrowthChartProps) {
   const data = useMemo(
-    () => buildContributionGrowth({ projectionData, annualContribution }),
-    [projectionData, annualContribution]
+    () => buildContributionGrowth({ projectionData, annualContribution, showRealValues, inflationRate }),
+    [projectionData, annualContribution, showRealValues, inflationRate]
   )
 
   if (data.length === 0) return null

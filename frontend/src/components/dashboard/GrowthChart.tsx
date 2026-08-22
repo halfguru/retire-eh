@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import type { ProjectionDataPoint } from '@/types/household'
 import { formatCompactMoney, formatMoney } from '@/lib/formatting'
@@ -6,18 +7,73 @@ import { TrendingUp } from 'lucide-react'
 interface GrowthChartProps {
   isDarkMode: boolean
   currentProjectionData: ProjectionDataPoint[]
+  conservativeProjectionData: ProjectionDataPoint[]
+  optimisticProjectionData: ProjectionDataPoint[]
   yearsToRetirement: number
+  expectedReturn: number
 }
 
-export function GrowthChart({ isDarkMode, currentProjectionData, yearsToRetirement }: GrowthChartProps) {
+export function GrowthChart({
+  isDarkMode,
+  currentProjectionData,
+  conservativeProjectionData,
+  optimisticProjectionData,
+  yearsToRetirement,
+  expectedReturn,
+}: GrowthChartProps) {
+  const [activeScenario, setActiveScenario] = useState<'conservative' | 'realistic' | 'optimistic'>('realistic')
+
   if (yearsToRetirement <= 0 || currentProjectionData.length === 0) return null
+
+  const chartData = activeScenario === 'conservative'
+    ? conservativeProjectionData
+    : activeScenario === 'optimistic'
+      ? optimisticProjectionData
+      : currentProjectionData
 
   return (
     <div className="animate-fade-in-up-delay-3 card p-6">
-      <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
-        <TrendingUp className="w-5 h-5 text-primary" />
-        Growth Projection
-      </h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <h2 className="text-xl font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-primary" />
+          Growth Projection
+        </h2>
+
+        {/* Scenario Toggle */}
+        <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl self-start sm:self-center">
+          <button
+            onClick={() => setActiveScenario('conservative')}
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+              activeScenario === 'conservative'
+                ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm'
+                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+            }`}
+          >
+            Conservative ({Math.max(0, expectedReturn - 2)}%)
+          </button>
+          <button
+            onClick={() => setActiveScenario('realistic')}
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+              activeScenario === 'realistic'
+                ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm'
+                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+            }`}
+          >
+            Realistic ({expectedReturn}%)
+          </button>
+          <button
+            onClick={() => setActiveScenario('optimistic')}
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+              activeScenario === 'optimistic'
+                ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm'
+                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+            }`}
+          >
+            Optimistic ({expectedReturn + 2}%)
+          </button>
+        </div>
+      </div>
+
       <div className="mb-4 flex gap-4 text-sm">
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-indigo-500"></span>
@@ -34,7 +90,7 @@ export function GrowthChart({ isDarkMode, currentProjectionData, yearsToRetireme
       </div>
       <div className="h-96">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={currentProjectionData} margin={{ top: 30, right: 50, left: 0, bottom: 25 }}>
+          <LineChart data={chartData} margin={{ top: 30, right: 50, left: 0, bottom: 25 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} strokeOpacity={0.25} />
             <XAxis
               dataKey="age"

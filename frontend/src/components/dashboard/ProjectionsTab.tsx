@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useProjectionContext } from '@/contexts/ProjectionContext'
 import { useAssumptions } from '@/contexts/AssumptionsContext'
 import { useDarkMode } from '@/hooks/useDarkMode'
@@ -22,6 +22,7 @@ export function ProjectionsTab() {
   const [isDarkMode] = useDarkMode()
   const projection = useProjectionContext()
   const assumptions = useAssumptions()
+  const [accumulationView, setAccumulationView] = useState<'growth' | 'contributions' | 'volatility'>('growth')
 
   const projectionData = projection.currentProjectionData
   const startAge = projectionData.length > 0 ? projectionData[0].age : 0
@@ -30,36 +31,91 @@ export function ProjectionsTab() {
 
   return (
     <div className="space-y-6">
-      <Suspense fallback={<ChartFallback />}>
-          <GrowthChart
-            isDarkMode={isDarkMode}
-            currentProjectionData={projection.currentProjectionData}
-            yearsToRetirement={projection.yearsToRetirement}
-          />
-      </Suspense>
+      {/* 1. Accumulation Phase (Saving) Section */}
+      <div className="space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200/50 dark:border-gray-700/50 pb-3">
+          <div>
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white">1. Saving Phase (Accumulation)</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Projecting your growth path up to retirement age</p>
+          </div>
+          
+          <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl self-start md:self-center">
+            <button
+              onClick={() => setAccumulationView('growth')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                accumulationView === 'growth'
+                  ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-250'
+              }`}
+            >
+              Standard Growth
+            </button>
+            <button
+              onClick={() => setAccumulationView('contributions')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                accumulationView === 'contributions'
+                  ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-250'
+              }`}
+            >
+              Contribution vs. Growth
+            </button>
+            <button
+              onClick={() => setAccumulationView('volatility')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                accumulationView === 'volatility'
+                  ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-250'
+              }`}
+            >
+              Market Volatility (Monte Carlo)
+            </button>
+          </div>
+        </div>
 
-      <Suspense fallback={<ChartFallback />}>
-          <MonteCarloChart
-            isDarkMode={isDarkMode}
-            initialBalance={projectionData.length > 0 ? projectionData[0].Total : 0}
-            annualContribution={projection.totalAnnualContributions}
-            yearsToRetirement={projection.yearsToRetirement}
-            expectedReturn={assumptions.expectedReturn}
-            inflationRate={assumptions.inflationRate}
-            startAge={startAge}
-            showRealValues={assumptions.showRealValues}
-          />
-      </Suspense>
+        <Suspense fallback={<ChartFallback />}>
+          {accumulationView === 'growth' && (
+            <GrowthChart
+              isDarkMode={isDarkMode}
+              currentProjectionData={projection.currentProjectionData}
+              conservativeProjectionData={projection.conservativeProjectionData}
+              optimisticProjectionData={projection.optimisticProjectionData}
+              yearsToRetirement={projection.yearsToRetirement}
+              expectedReturn={assumptions.expectedReturn}
+            />
+          )}
+          {accumulationView === 'contributions' && (
+            <ContributionGrowthChart
+              isDarkMode={isDarkMode}
+              projectionData={projectionData}
+              annualContribution={projection.totalAnnualContributions}
+              showRealValues={assumptions.showRealValues}
+              inflationRate={assumptions.inflationRate}
+            />
+          )}
+          {accumulationView === 'volatility' && (
+            <MonteCarloChart
+              isDarkMode={isDarkMode}
+              initialBalance={projectionData.length > 0 ? projectionData[0].Total : 0}
+              annualContribution={projection.totalAnnualContributions}
+              yearsToRetirement={projection.yearsToRetirement}
+              expectedReturn={assumptions.expectedReturn}
+              inflationRate={assumptions.inflationRate}
+              startAge={startAge}
+              showRealValues={assumptions.showRealValues}
+            />
+          )}
+        </Suspense>
+      </div>
 
-      <Suspense fallback={<ChartFallback />}>
-        <ContributionGrowthChart
-          isDarkMode={isDarkMode}
-          projectionData={projectionData}
-          annualContribution={projection.totalAnnualContributions}
-        />
-      </Suspense>
+      {/* 2. Decumulation Phase (Spending) Section */}
+      <div className="space-y-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+        <div>
+          <h2 className="text-xl font-bold text-gray-800 dark:text-white">2. Spending Phase (Decumulation)</h2>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Projecting how long your savings will last in retirement</p>
+        </div>
 
-      <Suspense fallback={<ChartFallback />}>
+        <Suspense fallback={<ChartFallback />}>
           <DrawdownChart
             isDarkMode={isDarkMode}
             startBalance={startBalance}
@@ -71,8 +127,10 @@ export function ProjectionsTab() {
             plannedGifts={assumptions.plannedGifts}
             minCurrentAge={projection.minCurrentAge}
           />
-      </Suspense>
+        </Suspense>
+      </div>
 
+      {/* Educational Footer Info */}
       <div className="card p-4 sm:p-6">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
           <BarChart3 className="w-5 h-5 text-indigo-500" />

@@ -9,6 +9,8 @@ interface ProjectionContextValueTyped {
   wasmLoaded: boolean
   wasmError: string | null
   projectionData: ProjectionDataPoint[]
+  conservativeProjectionData: ProjectionDataPoint[]
+  optimisticProjectionData: ProjectionDataPoint[]
   realProjectionData: ProjectionDataPoint[]
   currentProjectionData: ProjectionDataPoint[]
   householdRetirementAge: number
@@ -109,6 +111,14 @@ export function ProjectionProvider({ children }: { children: ReactNode }) {
     () => buildCombinedProjection(people, calculateProjection, expectedReturn, inflationRate, showRealValues, householdRetirementAge),
     [people, calculateProjection, expectedReturn, inflationRate, showRealValues, householdRetirementAge]
   )
+  const conservativeProjectionData = useMemo(
+    () => buildCombinedProjection(people, calculateProjection, Math.max(0, expectedReturn - 2), inflationRate, showRealValues, householdRetirementAge),
+    [people, calculateProjection, expectedReturn, inflationRate, showRealValues, householdRetirementAge]
+  )
+  const optimisticProjectionData = useMemo(
+    () => buildCombinedProjection(people, calculateProjection, expectedReturn + 2, inflationRate, showRealValues, householdRetirementAge),
+    [people, calculateProjection, expectedReturn, inflationRate, showRealValues, householdRetirementAge]
+  )
   const realProjectionData = useMemo(
     () => buildCombinedProjection(people, calculateProjection, expectedReturn, inflationRate, true, householdRetirementAge),
     [people, calculateProjection, expectedReturn, inflationRate, householdRetirementAge]
@@ -117,7 +127,8 @@ export function ProjectionProvider({ children }: { children: ReactNode }) {
   return (
     <ProjectionContext.Provider value={{
       wasmLoaded, wasmError,
-      projectionData, realProjectionData, currentProjectionData: projectionData,
+      projectionData, conservativeProjectionData, optimisticProjectionData,
+      realProjectionData, currentProjectionData: projectionData,
       householdRetirementAge, yearsToRetirement, minCurrentAge,
       totalAnnualIncome, totalAnnualPension, totalAnnualCpp, totalAnnualOas,
       totalPortfolio, totalAnnualContributions,
