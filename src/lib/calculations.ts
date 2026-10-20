@@ -1,0 +1,184 @@
+import type { ProjectionDataPoint } from '@/types/household'
+
+export function getPortfolioAtRetirement(data: ProjectionDataPoint[]): number {
+  return data.length > 0 ? data[data.length - 1].Total : 0
+}
+
+export interface PlannedGiftLite {
+  amount: number
+  age: number
+}
+
+// Total value of planned one-time gifts, expressed in the same dollar basis as the
+// retirement portfolio: real ("today's") dollars when showRealValues, otherwise
+// inflated to retirement age by the household's years to retirement.
+export function getGiftTotal(
+  gifts: PlannedGiftLite[],
+  yearsToRetirement: number,
+  showRealValues: boolean,
+  inflationRate: number,
+): number {
+  if (showRealValues) {
+    return gifts.reduce((sum, g) => sum + g.amount, 0)
+  }
+  const factor = Math.pow(1 + inflationRate / 100, Math.max(0, yearsToRetirement))
+  return gifts.reduce((sum, g) => sum + g.amount * factor, 0)
+}
+
+export function getPortfolioAfterGifts(
+  portfolioAtRetirement: number,
+  gifts: PlannedGiftLite[],
+  yearsToRetirement: number,
+  showRealValues: boolean,
+  inflationRate: number,
+): number {
+  return Math.max(0, portfolioAtRetirement - getGiftTotal(gifts, yearsToRetirement, showRealValues, inflationRate))
+}
+
+export const CPP_BASELINE_AGE = 65
+export const CPP_MIN_START_AGE = 60
+export const CPP_MAX_START_AGE = 70
+
+export function clampCppStartAge(startAge: number): number {
+  return Math.min(CPP_MAX_START_AGE, Math.max(CPP_MIN_START_AGE, Math.round(startAge)))
+}
+
+// Standard CPP adjustments: -0.6% per month before 65, +0.7% per month after 65.
+// The entered CPP amount is treated as the age-65 baseline.
+export function cppAdjustmentFactor(startAge: number): number {
+  const age = clampCppStartAge(startAge)
+  if (age < CPP_BASELINE_AGE) {
+    return 1 - 0.006 * 12 * (CPP_BASELINE_AGE - age)
+  }
+  if (age > CPP_BASELINE_AGE) {
+    return 1 + 0.007 * 12 * (age - CPP_BASELINE_AGE)
+  }
+  return 1
+}
+
+// CPP only counts as retirement income once the person reaches their chosen start age.
+export function getCppIncomeAtAge(
+  annualCppAt65: number | undefined,
+  startAge: number | undefined,
+  age: number,
+): number {
+  const resolvedStartAge = clampCppStartAge(startAge ?? CPP_BASELINE_AGE)
+  if (age < resolvedStartAge) return 0
+  return (annualCppAt65 || 0) * cppAdjustmentFactor(resolvedStartAge)
+}
+
+export interface RetirementGoalResult {
+  portfolioAtRetirement: number
+  requiredAnnualIncome: number
+  requiredAnnualIncomeAfterPension: number
+  requiredPortfolio: number
+  giftTotal: number
+  portfolioAfterGifts: number
+  progress: number
+  gap: number
+  additionalAnnualSavings: number
+  afterTaxPortfolioAtRetirement: number
+  afterTaxPortfolioAfterGifts: number
+  afterTaxProgress: number
+  afterTaxGap: number
+  afterTaxAdditionalAnnualSavings: number
+}
+
+export function calculateRetirementGoal(params: {
+  currentProjectionData: ProjectionDataPoint[]
+  annualIncome: number
+  annualPension: number
+  replacementRate: number
+  withdrawalRate: number
+  yearsToRetirement: number
+  expectedReturn: number
+  inflationRate: number
+  currentAnnualContributions: number
+  currentPortfolio: number
+  showRealValues?: boolean
+  plannedGifts?: PlannedGiftLite[]
+  effectiveTaxRate?: number
+}): RetirementGoalResult {
+  const {
+    currentProjectionData,
+    annualIncome,
+    annualPension,
+    replacementRate,
+    withdrawalRate,
+    yearsToRetirement,
+    expectedReturn,
+    inflationRate,
+    showRealValues = true,
+    plannedGifts = [],
+    effectiveTaxRate = 0,
+  } = params
+
+  // In nominal ("future dollars") mode, the income target and pension are inflated
+  // to retirement-age dollars so progress stays comparable to the nominal portfolio.
+  const inflationFactor = showRealValues
+    ? 1
+    : Math.pow(1 + inflationRate / 100, Math.max(0, yearsToRetirement))
+
+  const portfolioAtRetirement = getPortfolioAtRetirement(currentProjectionData)
+  // Gifts are reserved as a separate pot withdrawn from the retirement portfolio.
+  const giftTotal = getGiftTotal(plannedGifts, yearsToRetirement, showRealValues, inflationRate)
+  const portfolioAfterGifts = getPortfolioAfterGifts(portfolioAtRetirement, plannedGifts, yearsToRetirement, showRealValues, inflationRate)
+  const targetAnnualIncome = annualIncome * inflationFactor
+  const targetPension = annualPension * inflationFactor
+  const requiredAnnualIncome = targetAnnualIncome * (replacementRate / 100)
+  const requiredAnnualIncomeAfterPension = Math.max(0, requiredAnnualIncome - targetPension)
+  // Required portfolio = income portfolio (for the 4% rule) PLUS the reserved gifts.
+  const requiredPortfolio = (withdrawalRate > 0 ? requiredAnnualIncomeAfterPension / (withdrawalRate / 100) : 0) + giftTotal
+  const progress = requiredPortfolio > 0 ? Math.min(100, (portfolioAtRetirement / requiredPortfolio) * 100) : 0
+  const gap = requiredPortfolio - portfolioAtRetirement
+
+  const additionalAnnualSavings = yearsToRetirement > 0
+    ? calculateAdditionalAnnualSavings(gap, yearsToRetirement, expectedReturn, inflationRate)
+    : 0
+
+  // Calculate after-tax metrics (deducting the estimated lifetime tax on the RRSP
+  // portion). effectiveTaxRate is derived from the Quebec tax engine, not a flat input.
+  const lastPoint = currentProjectionData.length > 0 ? currentProjectionData[currentProjectionData.length - 1] : null
+  const rrspAtRetirement = lastPoint?.RRSP ?? 0
+  const afterTaxPortfolioAtRetirement = portfolioAtRetirement - (rrspAtRetirement * (effectiveTaxRate / 100))
+  const afterTaxPortfolioAfterGifts = Math.max(0, afterTaxPortfolioAtRetirement - giftTotal)
+  const afterTaxProgress = requiredPortfolio > 0 ? Math.min(100, (afterTaxPortfolioAtRetirement / requiredPortfolio) * 100) : 0
+  const afterTaxGap = requiredPortfolio - afterTaxPortfolioAtRetirement
+  const afterTaxAdditionalAnnualSavings = yearsToRetirement > 0
+    ? calculateAdditionalAnnualSavings(afterTaxGap, yearsToRetirement, expectedReturn, inflationRate)
+    : 0
+
+  return {
+    portfolioAtRetirement,
+    requiredAnnualIncome,
+    requiredAnnualIncomeAfterPension,
+    requiredPortfolio,
+    giftTotal,
+    portfolioAfterGifts,
+    progress,
+    gap,
+    additionalAnnualSavings,
+    afterTaxPortfolioAtRetirement,
+    afterTaxPortfolioAfterGifts,
+    afterTaxProgress,
+    afterTaxGap,
+    afterTaxAdditionalAnnualSavings,
+  }
+}
+
+function calculateAdditionalAnnualSavings(
+  gap: number,
+  yearsToRetirement: number,
+  expectedReturn: number,
+  inflationRate: number,
+): number {
+  if (gap <= 0 || yearsToRetirement <= 0) return 0
+
+  const monthlyNominalRate = expectedReturn / 100 / 12
+  const monthlyInflationRate = inflationRate / 100 / 12
+  const months = yearsToRetirement * 12
+  const monthlyRealRate = monthlyNominalRate - monthlyInflationRate
+  if (monthlyRealRate <= 0) return Math.round(gap / yearsToRetirement)
+  const monthlyRealSavings = gap * monthlyRealRate / ((1 + monthlyRealRate) ** months - 1)
+  return Math.round(monthlyRealSavings * 12)
+}
