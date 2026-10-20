@@ -8,7 +8,7 @@
 
 A household-first retirement planner for Canadians. Build an RRSP, TFSA, and CPP strategy with conservative projections and transparent math. Everything runs locally in your browser.
 
-![Screenshot](frontend/public/screenshot.png)
+![Screenshot](public/screenshot.png)
 
 **[Live Demo](https://halfguru.github.io/retire-eh/)**
 
@@ -25,7 +25,7 @@ A household-first retirement planner for Canadians. Build an RRSP, TFSA, and CPP
 
 ```bash
 git clone https://github.com/halfguru/retire-eh.git
-cd retire-eh/frontend
+cd retire-eh
 npm install
 npm run dev
 ```
@@ -45,7 +45,6 @@ All financial logic runs client-side in pure TypeScript: deterministic, testable
 ## Development
 
 ```bash
-cd frontend
 npm run dev        # Start dev server
 npm run build      # Production build
 npm run typecheck  # TypeScript check

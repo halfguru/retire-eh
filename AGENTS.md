@@ -4,7 +4,7 @@ This file guides agentic coding agents working on Retire, Eh?, a Canadian retire
 
 ## Build Commands
 
-All frontend commands should be run from the `frontend/` directory (or with `--prefix frontend` from the root):
+All commands should be run from the repository root:
 
 - `npm install` - Install dependencies
 - `npm run dev` - Start development server
