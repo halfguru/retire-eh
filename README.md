@@ -19,21 +19,14 @@ A household-first retirement planner for Canadians. Build an RRSP, TFSA, and CPP
 - **Visual projections** for portfolio growth over time
 - **Goal tracking** against your retirement income target
 - **Private by default**: all calculations run in-browser
-- **Fast**: core math powered by Rust/WebAssembly
+- **Fast & lightweight**: pure TypeScript client-side engine with zero loading delay
 
 ## Quick Start
 
 ```bash
 git clone https://github.com/halfguru/retire-eh.git
-cd retire-eh
-
-# Build WASM and copy artifacts to frontend
-cd backend && wasm-pack build --target web && cd ..
-cp backend/pkg/retirement_core_bg.wasm frontend/public/wasm/
-cp backend/pkg/retirement_core.js frontend/src/lib/
-cp backend/pkg/retirement_core.d.ts frontend/src/lib/
-
-cd frontend && npm install
+cd retire-eh/frontend
+npm install
 npm run dev
 ```
 
@@ -45,29 +38,19 @@ Open http://localhost:5173 to view the app.
 |-------|------------|
 | Frontend | React + TypeScript + Tailwind CSS |
 | Charts | Recharts |
-| Calculations | Rust compiled to WebAssembly |
+| Calculations | Pure TypeScript Calculation Engine |
 
-The Rust core keeps all financial logic in one place: deterministic, testable, and fast in the browser.
+All financial logic runs client-side in pure TypeScript: deterministic, testable, instant, and privacy-preserving.
 
 ## Development
 
-### Frontend
-
 ```bash
+cd frontend
 npm run dev        # Start dev server
 npm run build      # Production build
 npm run typecheck  # TypeScript check
 npm run lint       # ESLint
-```
-
-### Backend (Rust/WASM)
-
-```bash
-cd backend
-cargo build        # Build Rust
-cargo test         # Run tests
-cargo clippy       # Lint
-wasm-pack build --target web  # Build WASM
+npm test           # Vitest unit tests
 ```
 
 ### AI-Assisted Development
@@ -87,7 +70,6 @@ Retirement success is a household outcome. Savings get evaluated jointly regardl
 ## What This Doesn't Do
 
 - Bank account linking or real-time market data
-- Complex tax optimization engines or Monte Carlo simulations
 - FIRE or early-retirement evangelism
 - Non-Canadian retirement accounts (401k, IRA, etc.)
 

@@ -1,8 +1,7 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react'
 import { usePeople } from './PeopleContext'
 import { useAssumptions } from './AssumptionsContext'
-import { useProjection } from '@/hooks/useProjection'
-
+import { projectPersonAccounts } from '@/lib/engine'
 import type { ProjectionDataPoint } from '@/types/projection'
 
 interface ProjectionContextValueTyped {
@@ -32,15 +31,6 @@ const ProjectionContext = createContext<ProjectionContextValueTyped | null>(null
 // result by age so contributions stop per person, not at a single household age.
 function buildCombinedProjection(
   people: { currentAge: number; retirementAge: number; accounts: import('@/types/person').Account[] }[],
-  calculateProjection: (
-    accounts: import('@/types/person').Account[],
-    retirementAge: number,
-    baseAge: number,
-    expectedReturn: number,
-    inflationRate: number,
-    showRealValues: boolean,
-    yearsToRetirement: number
-  ) => ProjectionDataPoint[],
   expectedReturn: number,
   inflationRate: number,
   showRealValues: boolean,
@@ -53,7 +43,16 @@ function buildCombinedProjection(
   const currentYear = new Date().getFullYear()
 
   const perPerson = people.map(p =>
-    calculateProjection(p.accounts, p.retirementAge, p.currentAge, expectedReturn, inflationRate, showRealValues, p.retirementAge - p.currentAge)
+    projectPersonAccounts(
+      p.accounts,
+      p.retirementAge,
+      p.currentAge,
+      expectedReturn,
+      inflationRate,
+      showRealValues,
+      p.retirementAge - p.currentAge,
+      currentYear
+    )
   )
 
   const combined: ProjectionDataPoint[] = []
@@ -91,7 +90,6 @@ function buildCombinedProjection(
 export function ProjectionProvider({ children }: { children: ReactNode }) {
   const { people } = usePeople()
   const { expectedReturn, inflationRate, showRealValues } = useAssumptions()
-  const { wasmLoaded, wasmError, calculateProjection } = useProjection()
 
   const householdRetirementAge = people.length ? Math.max(...people.map(p => p.retirementAge)) : 0
   const minCurrentAge = people.length ? Math.min(...people.map(p => p.currentAge)) : 0
@@ -108,25 +106,26 @@ export function ProjectionProvider({ children }: { children: ReactNode }) {
   const totalAnnualContributions = allAccounts.reduce((sum, acc) => sum + (acc.annualContribution || 0), 0)
 
   const projectionData = useMemo(
-    () => buildCombinedProjection(people, calculateProjection, expectedReturn, inflationRate, showRealValues, householdRetirementAge),
-    [people, calculateProjection, expectedReturn, inflationRate, showRealValues, householdRetirementAge]
+    () => buildCombinedProjection(people, expectedReturn, inflationRate, showRealValues, householdRetirementAge),
+    [people, expectedReturn, inflationRate, showRealValues, householdRetirementAge]
   )
   const conservativeProjectionData = useMemo(
-    () => buildCombinedProjection(people, calculateProjection, Math.max(0, expectedReturn - 2), inflationRate, showRealValues, householdRetirementAge),
-    [people, calculateProjection, expectedReturn, inflationRate, showRealValues, householdRetirementAge]
+    () => buildCombinedProjection(people, Math.max(0, expectedReturn - 2), inflationRate, showRealValues, householdRetirementAge),
+    [people, expectedReturn, inflationRate, showRealValues, householdRetirementAge]
   )
   const optimisticProjectionData = useMemo(
-    () => buildCombinedProjection(people, calculateProjection, expectedReturn + 2, inflationRate, showRealValues, householdRetirementAge),
-    [people, calculateProjection, expectedReturn, inflationRate, showRealValues, householdRetirementAge]
+    () => buildCombinedProjection(people, expectedReturn + 2, inflationRate, showRealValues, householdRetirementAge),
+    [people, expectedReturn, inflationRate, showRealValues, householdRetirementAge]
   )
   const realProjectionData = useMemo(
-    () => buildCombinedProjection(people, calculateProjection, expectedReturn, inflationRate, true, householdRetirementAge),
-    [people, calculateProjection, expectedReturn, inflationRate, householdRetirementAge]
+    () => buildCombinedProjection(people, expectedReturn, inflationRate, true, householdRetirementAge),
+    [people, expectedReturn, inflationRate, householdRetirementAge]
   )
 
   return (
     <ProjectionContext.Provider value={{
-      wasmLoaded, wasmError,
+      wasmLoaded: true,
+      wasmError: null,
       projectionData, conservativeProjectionData, optimisticProjectionData,
       realProjectionData, currentProjectionData: projectionData,
       householdRetirementAge, yearsToRetirement, minCurrentAge,

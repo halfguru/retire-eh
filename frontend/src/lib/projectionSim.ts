@@ -1,6 +1,6 @@
-// Pure-TypeScript portfolio simulations that mirror the WASM monthly-compounding
-// model, so we can illustrate uncertainty (Monte Carlo), the contribution vs
-// growth split, and the post-retirement drawdown phase without touching the backend.
+// Pure-TypeScript portfolio simulations that mirror the core monthly-compounding
+// model, illustrating uncertainty (Monte Carlo), the contribution vs
+// growth split, and the post-retirement drawdown phase.
 
 function gaussian(): number {
   let u = 0
