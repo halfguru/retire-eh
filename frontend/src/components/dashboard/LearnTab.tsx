@@ -112,7 +112,7 @@ const sections: LearnSection[] = [
         </p>
         <p className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-800 text-xs">
           <strong className="text-gray-800 dark:text-gray-200 block mb-1">Pre-Tax vs. After-Tax Projections:</strong>
-          Because RRSP withdrawals are taxed as regular income, a dollar in an RRSP does not have the same purchasing power as a dollar in a TFSA. This app applies your estimated <strong>Retirement Tax Rate</strong> directly to your projected RRSP balance to compute your <strong>After-Tax Net Worth</strong> and target progress. This ensures you know exactly how much additional savings you need to cover both your base goals and your expected tax liabilities.
+          Because RRSP withdrawals are taxed as regular income, a dollar in an RRSP does not have the same purchasing power as a dollar in a TFSA. This app estimates federal and Quebec income tax (2026 rates), including the Quebec abatement, age and pension credits, and the OAS clawback, for each person's retirement income. That estimated tax is used to compute your <strong>After-Tax Net Worth</strong> and target progress, so you can see how much additional savings you need to cover both your base goals and your expected tax liabilities.
         </p>
       </div>
     )
@@ -140,7 +140,7 @@ const sections: LearnSection[] = [
                 <strong>Maximum ~$1,508/month at age 65</strong> (2026). To reach the maximum you generally need ~39 years of maximum contributions.
               </span>
               <span className="block">
-                You can take it from age <strong>60 to 70</strong>. Each month before 65 reduces the amount by ~0.6% (about 7.2%/year); each month after 65 increases it by ~0.7% until 70.
+                You can take it from age <strong>60 to 70</strong>. Each month before 65 reduces the amount by ~0.6% (about 7.2%/year); each month after 65 increases it by ~0.7% until 70. Set your <strong>CPP Start Age</strong> on the Plan tab and the app adjusts your age-65 estimate automatically.
               </span>
               <span className="block">
                 Your <strong>official estimate</strong> lives in your My Service Canada Account under "CPP Statement of Contributions."

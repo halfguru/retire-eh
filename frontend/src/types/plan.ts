@@ -10,7 +10,6 @@ export interface PlanAssumptions {
   inflationRate: number
   replacementRate: number
   withdrawalRate: number
-  retirementTaxRate: number
   showRealValues: boolean
   plannedGifts: PlannedGift[]
 }

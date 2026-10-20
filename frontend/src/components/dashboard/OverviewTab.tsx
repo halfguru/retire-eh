@@ -17,6 +17,7 @@ export function OverviewTab() {
   const allAccounts = people.flatMap(p => p.accounts)
   const totalGuaranteedPension = projection.totalAnnualPension + projection.totalAnnualCpp + projection.totalAnnualOas
   const portfolioAtRetirement = getPortfolioAtRetirement(projection.currentProjectionData)
+  const tax = projection.retirementTax
 
   return (
     <div className="space-y-6">
@@ -34,7 +35,9 @@ export function OverviewTab() {
         householdRetirementAge={projection.householdRetirementAge}
         showRealValues={assumptions.showRealValues}
         plannedGifts={assumptions.plannedGifts}
-        retirementTaxRate={assumptions.retirementTaxRate}
+        effectiveTaxRate={tax?.effectiveRrspTaxRate}
+        afterTaxAnnualIncome={tax?.afterTaxIncome}
+        taxSummary={tax}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-start">
@@ -43,6 +46,15 @@ export function OverviewTab() {
           allAccounts={allAccounts}
         />
 
+        <RetirementProjectionCard
+          currentProjectionData={projection.currentProjectionData}
+          totalPortfolio={projection.totalPortfolio}
+          yearsToRetirement={projection.yearsToRetirement}
+          showRealValues={assumptions.showRealValues}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-start">
         <IncomeBreakdownCard
           portfolioAtRetirement={portfolioAtRetirement}
           annualPension={projection.totalAnnualPension}
@@ -54,15 +66,6 @@ export function OverviewTab() {
           inflationRate={assumptions.inflationRate}
           yearsToRetirement={projection.yearsToRetirement}
           plannedGifts={assumptions.plannedGifts}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-start">
-        <RetirementProjectionCard
-          currentProjectionData={projection.currentProjectionData}
-          totalPortfolio={projection.totalPortfolio}
-          yearsToRetirement={projection.yearsToRetirement}
-          showRealValues={assumptions.showRealValues}
         />
 
         <GoalsCard
@@ -78,7 +81,7 @@ export function OverviewTab() {
           currentPortfolio={projection.totalPortfolio}
           showRealValues={assumptions.showRealValues}
           plannedGifts={assumptions.plannedGifts}
-          retirementTaxRate={assumptions.retirementTaxRate}
+          effectiveTaxRate={tax?.effectiveRrspTaxRate}
         />
       </div>
 

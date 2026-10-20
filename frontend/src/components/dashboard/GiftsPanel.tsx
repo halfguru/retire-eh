@@ -1,5 +1,7 @@
 import { useAssumptions } from '@/contexts/AssumptionsContext'
 import { Gift } from 'lucide-react'
+import { NumberInput } from '@/components/ui/NumberInput'
+import { IntegerInput } from '@/components/ui/IntegerInput'
 
 interface GiftsPanelProps {
   defaultAge: number
@@ -34,6 +36,11 @@ export function GiftsPanel({ defaultAge }: GiftsPanelProps) {
         </div>
       ) : (
         <div className="space-y-3">
+          <div className="grid grid-cols-12 gap-2 px-0.5 text-[11px] font-medium text-gray-500 dark:text-gray-400">
+            <div className="col-span-5">Description</div>
+            <div className="col-span-4">Amount (today's $)</div>
+            <div className="col-span-2">Age</div>
+          </div>
           {plannedGifts.map((gift) => (
             <div key={gift.id} className="grid grid-cols-12 gap-2 items-center">
               <div className="col-span-5">
@@ -42,28 +49,27 @@ export function GiftsPanel({ defaultAge }: GiftsPanelProps) {
                   value={gift.label}
                   onChange={(e) => updateGift(gift.id, { label: e.target.value })}
                   placeholder="e.g., Kid 1 down payment"
+                  aria-label="Gift description"
                   className="w-full px-2 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
                 />
               </div>
-              <div className="col-span-4 relative">
-                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
-                <input
-                  type="number"
-                  min={0}
-                  step={1000}
+              <div className="col-span-4">
+                <NumberInput
                   value={gift.amount}
-                  onChange={(e) => updateGift(gift.id, { amount: e.target.valueAsNumber || 0 })}
-                  className="w-full pl-5 pr-2 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
+                  onChange={(val) => updateGift(gift.id, { amount: val })}
+                  step={1000}
+                  min={0}
+                  size="compact"
+                  ariaLabel={`Amount for ${gift.label || 'gift'}`}
                 />
               </div>
-              <div className="col-span-2 relative">
-                <input
-                  type="number"
+              <div className="col-span-2">
+                <IntegerInput
+                  value={gift.age}
+                  onChange={(val) => updateGift(gift.id, { age: val })}
                   min={0}
                   max={120}
-                  step={1}
-                  value={gift.age}
-                  onChange={(e) => updateGift(gift.id, { age: Math.round(e.target.valueAsNumber || 0) })}
+                  ariaLabel={`Age when giving ${gift.label || 'gift'}`}
                   className="w-full px-2 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20"
                 />
               </div>
@@ -79,7 +85,7 @@ export function GiftsPanel({ defaultAge }: GiftsPanelProps) {
             </div>
           ))}
           <div className="text-[11px] text-gray-400 dark:text-gray-500 pt-1">
-            Amount is in today's dollars; "age" is when you plan to give it.
+            Amounts are in today's dollars. Age is on the plan's projection timeline, not tied to a specific person.
           </div>
         </div>
       )}

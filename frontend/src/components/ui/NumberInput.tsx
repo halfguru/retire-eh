@@ -8,9 +8,10 @@ interface NumberInputProps {
   min?: number
   max?: number
   size?: 'default' | 'compact'
+  ariaLabel?: string
 }
 
-export function NumberInput({ value, onChange, step, min, max, size = 'default' }: NumberInputProps) {
+export function NumberInput({ value, onChange, step, min, max, size = 'default', ariaLabel }: NumberInputProps) {
   const [focused, setFocused] = useState(false)
 
   const displayValue = useMemo(() => {
@@ -37,6 +38,7 @@ export function NumberInput({ value, onChange, step, min, max, size = 'default' 
         onBlur={() => setFocused(false)}
         autoComplete="off"
         data-lpignore="true"
+        aria-label={ariaLabel}
         className={`number-input w-full bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded border border-gray-300 dark:border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 ${
           isCompact ? 'px-2 py-1 pr-6 text-sm' : 'px-2.5 py-1.5 pr-7 text-sm'
         }`}

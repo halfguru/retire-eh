@@ -15,7 +15,7 @@ interface UseRetirementGoalParams {
   currentPortfolio: number
   showRealValues?: boolean
   plannedGifts?: PlannedGiftLite[]
-  retirementTaxRate?: number
+  effectiveTaxRate?: number
 }
 
 export interface RetirementGoalWithIncome extends RetirementGoalResult {
@@ -36,7 +36,7 @@ export function useRetirementGoal({
   currentPortfolio,
   showRealValues = true,
   plannedGifts = [],
-  retirementTaxRate = 20,
+  effectiveTaxRate = 0,
 }: UseRetirementGoalParams): RetirementGoalWithIncome {
   const goal = useMemo(
     () => calculateRetirementGoal({
@@ -52,9 +52,9 @@ export function useRetirementGoal({
       currentPortfolio,
       showRealValues,
       plannedGifts,
-      retirementTaxRate,
+      effectiveTaxRate,
     }),
-    [currentProjectionData, annualIncome, annualPension, replacementRate, withdrawalRate, yearsToRetirement, expectedReturn, inflationRate, currentAnnualContributions, currentPortfolio, showRealValues, plannedGifts, retirementTaxRate]
+    [currentProjectionData, annualIncome, annualPension, replacementRate, withdrawalRate, yearsToRetirement, expectedReturn, inflationRate, currentAnnualContributions, currentPortfolio, showRealValues, plannedGifts, effectiveTaxRate]
   )
 
   const inflationFactor = showRealValues

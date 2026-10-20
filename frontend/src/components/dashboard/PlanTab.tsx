@@ -66,8 +66,6 @@ export function PlanTab() {
           setReplacementRate={assumptions.setReplacementRate}
           withdrawalRate={assumptions.withdrawalRate}
           setWithdrawalRate={assumptions.setWithdrawalRate}
-          retirementTaxRate={assumptions.retirementTaxRate}
-          setRetirementTaxRate={assumptions.setRetirementTaxRate}
         />
         <GiftsPanel defaultAge={projection.householdRetirementAge} />
       </div>

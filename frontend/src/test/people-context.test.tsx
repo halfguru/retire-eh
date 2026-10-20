@@ -15,6 +15,7 @@ describe('PeopleContext', () => {
     const { result } = renderHook(() => usePeople(), { wrapper })
     expect(result.current.people.length).toBeGreaterThanOrEqual(1)
     expect(result.current.people[0].name).toBe('You')
+    expect(result.current.people[0].cppStartAge).toBe(65)
     expect(result.current.selectedPersonId).toBe(result.current.people[0].id)
   })
 

@@ -15,6 +15,7 @@ const personSchema = z.object({
   annualIncome: z.number().min(0),
   annualPension: z.number().min(0),
   annualCpp: z.number().min(0).optional(),
+  cppStartAge: z.number().int().min(60).max(70).optional().default(65),
   accounts: z.array(accountSchema),
 })
 
@@ -30,7 +31,6 @@ const assumptionsSchema = z.object({
   inflationRate: z.number().min(0).max(30),
   replacementRate: z.number().min(0).max(200),
   withdrawalRate: z.number().min(0.01).max(20),
-  retirementTaxRate: z.number().min(0).max(100).optional().default(20),
   showRealValues: z.boolean(),
   plannedGifts: z.array(plannedGiftSchema).optional().default([]),
 })

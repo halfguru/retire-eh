@@ -109,8 +109,10 @@ App.tsx (provider shell)
 
 ## Testing
 
-### Frontend (58 tests)
+### Frontend (84 tests)
 - `src/test/engine.test.ts` - Core calculation engine unit tests (projections, compounding, withdrawal)
+- `src/test/cpp.test.ts` - CPP start-age adjustment factor and income-gating tests
+- `src/test/tax.test.ts` - Quebec 2026 income tax, credits, OAS clawback, household tax allocation
 - `src/test/people-context.test.tsx` - PeopleContext consumer tests (CRUD, selection, import)
 - `src/test/validation.test.ts` - Zod validation tests
 - `src/test/yaml-utils.test.ts` - YAML import/export tests
@@ -119,6 +121,7 @@ App.tsx (provider shell)
 ### Shared Utilities
 - `src/lib/engine.ts` - Core deterministic retirement calculation engine
 - `src/lib/projectionSim.ts` - Monte Carlo stochastic uncertainty simulation & drawdown
+- `src/lib/tax.ts` - Quebec 2026 income tax estimator (brackets, credits, OAS clawback, household allocation)
 - `src/lib/formatting.ts` - `formatMoney()`, `formatCompactMoney()` for all currency display
 - `src/hooks/useRetirementGoal.ts` - Shared goal calculation hook
 - `src/lib/validation.ts` - Zod schemas for YAML import and form validation

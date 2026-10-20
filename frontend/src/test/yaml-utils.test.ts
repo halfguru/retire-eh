@@ -8,7 +8,6 @@ const mockAssumptions: PlanAssumptions = {
   inflationRate: 2.5,
   replacementRate: 70,
   withdrawalRate: 4,
-  retirementTaxRate: 20,
   showRealValues: true,
   plannedGifts: [],
 }
@@ -21,6 +20,8 @@ const mockPeople: Person[] = [
     retirementAge: 65,
     annualIncome: 100000,
     annualPension: 0,
+    annualCpp: 18000,
+    cppStartAge: 60,
     accounts: [
       { id: 'acc-1', type: 'RRSP', balance: 50000, annualContribution: 5000 },
       { id: 'acc-2', type: 'TFSA', balance: 30000, annualContribution: 6000 },
@@ -67,6 +68,7 @@ describe('yaml-utils', () => {
       expect(imported!.people).toHaveLength(1)
       expect(imported!.people[0].name).toBe('Alice')
       expect(imported!.people[0].accounts).toHaveLength(2)
+      expect(imported!.people[0].cppStartAge).toBe(60)
     })
 
     it('returns null for empty string', () => {

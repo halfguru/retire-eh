@@ -22,6 +22,7 @@ export function PlanSummaryCard() {
     currentPortfolio: projection.totalPortfolio,
     showRealValues: assumptions.showRealValues,
     plannedGifts: assumptions.plannedGifts,
+    effectiveTaxRate: projection.retirementTax?.effectiveRrspTaxRate,
   })
 
   const portfolioAtRetirement = getPortfolioAtRetirement(projection.currentProjectionData)

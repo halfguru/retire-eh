@@ -9,8 +9,6 @@ interface AssumptionsPanelProps {
   setReplacementRate: (value: number) => void
   withdrawalRate: number
   setWithdrawalRate: (value: number) => void
-  retirementTaxRate: number
-  setRetirementTaxRate: (value: number) => void
 }
 
 interface AssumptionFieldProps {
@@ -68,8 +66,6 @@ export function AssumptionsPanel({
   setReplacementRate,
   withdrawalRate,
   setWithdrawalRate,
-  retirementTaxRate,
-  setRetirementTaxRate
 }: AssumptionsPanelProps) {
   return (
     <div className="animate-fade-in-up-delay-1 card p-4 h-fit">
@@ -111,16 +107,10 @@ export function AssumptionsPanel({
           step={0.1}
           onChange={setWithdrawalRate}
         />
-        <AssumptionField
-          label="Retirement Tax Rate (RRSP)"
-          tooltip="Estimated average tax rate on taxable withdrawals (RRSP/RRIF) during retirement."
-          value={retirementTaxRate}
-          min={0}
-          max={50}
-          step={1}
-          onChange={setRetirementTaxRate}
-        />
       </div>
+      <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-4 leading-relaxed">
+        Retirement income tax is estimated automatically using 2026 Quebec federal and provincial rates.
+      </p>
     </div>
   )
 }

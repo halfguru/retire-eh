@@ -35,6 +35,38 @@ export function getPortfolioAfterGifts(
   return Math.max(0, portfolioAtRetirement - getGiftTotal(gifts, yearsToRetirement, showRealValues, inflationRate))
 }
 
+export const CPP_BASELINE_AGE = 65
+export const CPP_MIN_START_AGE = 60
+export const CPP_MAX_START_AGE = 70
+
+export function clampCppStartAge(startAge: number): number {
+  return Math.min(CPP_MAX_START_AGE, Math.max(CPP_MIN_START_AGE, Math.round(startAge)))
+}
+
+// Standard CPP adjustments: -0.6% per month before 65, +0.7% per month after 65.
+// The entered CPP amount is treated as the age-65 baseline.
+export function cppAdjustmentFactor(startAge: number): number {
+  const age = clampCppStartAge(startAge)
+  if (age < CPP_BASELINE_AGE) {
+    return 1 - 0.006 * 12 * (CPP_BASELINE_AGE - age)
+  }
+  if (age > CPP_BASELINE_AGE) {
+    return 1 + 0.007 * 12 * (age - CPP_BASELINE_AGE)
+  }
+  return 1
+}
+
+// CPP only counts as retirement income once the person reaches their chosen start age.
+export function getCppIncomeAtAge(
+  annualCppAt65: number | undefined,
+  startAge: number | undefined,
+  age: number,
+): number {
+  const resolvedStartAge = clampCppStartAge(startAge ?? CPP_BASELINE_AGE)
+  if (age < resolvedStartAge) return 0
+  return (annualCppAt65 || 0) * cppAdjustmentFactor(resolvedStartAge)
+}
+
 export interface RetirementGoalResult {
   portfolioAtRetirement: number
   requiredAnnualIncome: number
@@ -65,7 +97,7 @@ export function calculateRetirementGoal(params: {
   currentPortfolio: number
   showRealValues?: boolean
   plannedGifts?: PlannedGiftLite[]
-  retirementTaxRate?: number
+  effectiveTaxRate?: number
 }): RetirementGoalResult {
   const {
     currentProjectionData,
@@ -78,7 +110,7 @@ export function calculateRetirementGoal(params: {
     inflationRate,
     showRealValues = true,
     plannedGifts = [],
-    retirementTaxRate = 20,
+    effectiveTaxRate = 0,
   } = params
 
   // In nominal ("future dollars") mode, the income target and pension are inflated
@@ -104,10 +136,11 @@ export function calculateRetirementGoal(params: {
     ? calculateAdditionalAnnualSavings(gap, yearsToRetirement, expectedReturn, inflationRate)
     : 0
 
-  // Calculate after-tax metrics (deducting estimated tax rate on the RRSP portion)
+  // Calculate after-tax metrics (deducting the estimated lifetime tax on the RRSP
+  // portion). effectiveTaxRate is derived from the Quebec tax engine, not a flat input.
   const lastPoint = currentProjectionData.length > 0 ? currentProjectionData[currentProjectionData.length - 1] : null
   const rrspAtRetirement = lastPoint?.RRSP ?? 0
-  const afterTaxPortfolioAtRetirement = portfolioAtRetirement - (rrspAtRetirement * (retirementTaxRate / 100))
+  const afterTaxPortfolioAtRetirement = portfolioAtRetirement - (rrspAtRetirement * (effectiveTaxRate / 100))
   const afterTaxPortfolioAfterGifts = Math.max(0, afterTaxPortfolioAtRetirement - giftTotal)
   const afterTaxProgress = requiredPortfolio > 0 ? Math.min(100, (afterTaxPortfolioAtRetirement / requiredPortfolio) * 100) : 0
   const afterTaxGap = requiredPortfolio - afterTaxPortfolioAtRetirement

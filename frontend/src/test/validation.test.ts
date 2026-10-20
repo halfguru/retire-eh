@@ -60,6 +60,7 @@ describe('validateYamlImport', () => {
       retirementAge: 65,
       annualIncome: 100000,
       annualPension: 0,
+      cppStartAge: 65,
       accounts: [
         { id: 'a1', type: 'RRSP', balance: 50000, annualContribution: 5000 },
       ],
@@ -127,6 +128,29 @@ describe('validateYamlImport', () => {
     expect(result.success).toBe(false)
     if (!result.success) {
       expect(result.errors[0]).toContain('retirement age')
+    }
+  })
+
+  it('fails for CPP start age outside 60-70', () => {
+    const result = validateYamlImport({
+      ...validPlan,
+      people: [{
+        ...validPlan.people[0],
+        cppStartAge: 55,
+      }],
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('defaults CPP start age to 65 when omitted', () => {
+    const personWithoutCppStartAge = { ...validPlan.people[0], cppStartAge: undefined }
+    const result = validateYamlImport({
+      ...validPlan,
+      people: [personWithoutCppStartAge],
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.people[0].cppStartAge).toBe(65)
     }
   })
 

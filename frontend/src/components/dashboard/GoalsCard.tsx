@@ -16,12 +16,12 @@ interface GoalsCardProps {
   currentPortfolio: number
   showRealValues: boolean
   plannedGifts: PlannedGiftLite[]
-  retirementTaxRate?: number
+  effectiveTaxRate?: number
 }
 
 export function GoalsCard(props: GoalsCardProps) {
   const goal = useRetirementGoal(props)
-  const { yearsToRetirement, annualPension, retirementTaxRate } = props
+  const { yearsToRetirement, annualPension, effectiveTaxRate } = props
 
   return (
     <div className="animate-fade-in-up card p-6">
@@ -56,11 +56,11 @@ export function GoalsCard(props: GoalsCardProps) {
             </div>
           </div>
 
-          {retirementTaxRate !== undefined && retirementTaxRate > 0 && (
+          {effectiveTaxRate !== undefined && effectiveTaxRate > 0 && (
             <div>
               <div className="flex justify-between text-xs mb-1">
                 <span className="text-gray-600 dark:text-gray-400 font-medium text-indigo-600 dark:text-indigo-400">After-Tax Progress: {goal.afterTaxProgress.toFixed(1)}%</span>
-                <span className="text-gray-505 dark:text-gray-400">Adjusted for {retirementTaxRate}% Tax</span>
+                <span className="text-gray-500 dark:text-gray-400">Est. {effectiveTaxRate.toFixed(1)}% avg tax</span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div

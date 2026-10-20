@@ -58,7 +58,7 @@ export function IncomeBreakdownCard({
     {
       name: 'Annual CPP (estimated)',
       amount: cppEstimate,
-      description: 'Your entered annual CPP estimate at retirement (defaults to 2026 maximum)',
+      description: 'Estimated CPP, adjusted for your start age; not counted before it begins',
       color: '#10b981'
     },
     {
@@ -145,7 +145,8 @@ export function IncomeBreakdownCard({
             <span className="font-semibold">${formatMoney(giftTotal)}</span>
           </div>
           <div className="text-xs mt-1">
-            Set aside from the portfolio at retirement; your withdrawal above is based on what remains.
+            ${formatMoney(portfolioAtRetirement)} − ${formatMoney(giftTotal)} = ${formatMoney(portfolioAfterGifts)} investable;
+            the {withdrawalRate}% withdrawal above is based on what remains.
           </div>
         </div>
       )}

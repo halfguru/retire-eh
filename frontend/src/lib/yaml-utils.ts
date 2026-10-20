@@ -20,6 +20,7 @@ export function exportToYAML(
       annualIncome: p.annualIncome,
       annualPension: p.annualPension,
       annualCpp: p.annualCpp,
+      cppStartAge: p.cppStartAge ?? 65,
       accounts: p.accounts
     }))
   }

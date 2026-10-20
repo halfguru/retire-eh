@@ -1,7 +1,8 @@
 import { useRetirementGoal } from '@/hooks/useRetirementGoal'
 import { formatMoney } from '@/lib/formatting'
 import { getPortfolioAtRetirement, getPortfolioAfterGifts } from '@/lib/calculations'
-import { CheckCircle2, AlertTriangle, Lightbulb } from 'lucide-react'
+import type { RetirementTaxSummary } from '@/lib/tax'
+import { CheckCircle2, AlertTriangle, Lightbulb, Gift } from 'lucide-react'
 import { ModeBadge } from '@/components/ui/ModeBadge'
 
 interface SummaryCardProps {
@@ -18,19 +19,30 @@ interface SummaryCardProps {
   householdRetirementAge: number
   showRealValues: boolean
   plannedGifts: import('@/lib/calculations').PlannedGiftLite[]
-  retirementTaxRate?: number
+  effectiveTaxRate?: number
+  afterTaxAnnualIncome?: number
+  taxSummary?: RetirementTaxSummary | null
 }
 
 export function SummaryCard(props: SummaryCardProps) {
-  const { householdRetirementAge, currentProjectionData, withdrawalRate, ...goalProps } = props
+  const {
+    householdRetirementAge,
+    currentProjectionData,
+    withdrawalRate,
+    afterTaxAnnualIncome,
+    taxSummary,
+    ...goalProps
+  } = props
   const { progress, afterTaxProgress, additionalAnnualSavings, afterTaxAdditionalAnnualSavings, projectedAnnualIncome, afterTaxProjectedAnnualIncome, giftTotal } = useRetirementGoal({ ...goalProps, currentProjectionData, withdrawalRate })
 
   const isOnTrack = progress >= 100
   const isAfterTaxOnTrack = afterTaxProgress >= 100
-  const isOverallOnTrack = isOnTrack && (goalProps.retirementTaxRate !== undefined && goalProps.retirementTaxRate > 0 ? isAfterTaxOnTrack : true)
+  const isOverallOnTrack = isOnTrack && (goalProps.effectiveTaxRate !== undefined && goalProps.effectiveTaxRate > 0 ? isAfterTaxOnTrack : true)
   const { yearsToRetirement, showRealValues } = goalProps
 
-  const portfolioAfterGifts = getPortfolioAfterGifts(getPortfolioAtRetirement(currentProjectionData), goalProps.plannedGifts ?? [], yearsToRetirement, goalProps.showRealValues, goalProps.inflationRate)
+  const afterTaxIncome = afterTaxAnnualIncome ?? afterTaxProjectedAnnualIncome
+  const portfolioAtRetirement = getPortfolioAtRetirement(currentProjectionData)
+  const portfolioAfterGifts = getPortfolioAfterGifts(portfolioAtRetirement, goalProps.plannedGifts ?? [], yearsToRetirement, goalProps.showRealValues, goalProps.inflationRate)
   const portfolioWithdrawal = portfolioAfterGifts * (withdrawalRate / 100)
   const guaranteedIncome = projectedAnnualIncome - portfolioWithdrawal
 
@@ -69,17 +81,26 @@ export function SummaryCard(props: SummaryCardProps) {
             ${formatMoney(projectedAnnualIncome)}<span className="text-xs text-gray-500 font-normal">/yr</span>
           </div>
           <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-1.5 leading-relaxed">
-            ${formatMoney(portfolioWithdrawal)} SWR + ${formatMoney(guaranteedIncome)} pensions
+            {giftTotal > 0 ? (
+              <>
+                (${formatMoney(portfolioAtRetirement)} − ${formatMoney(giftTotal)} gifts) × {withdrawalRate}% ={' '}
+                ${formatMoney(portfolioWithdrawal)} + ${formatMoney(guaranteedIncome)} pensions
+              </>
+            ) : (
+              <>&#36;{formatMoney(portfolioWithdrawal)} Safe Withdrawal Rate + &#36;{formatMoney(guaranteedIncome)} pensions</>
+            )}
           </div>
         </div>
 
         <div className="p-4 bg-white/50 dark:bg-black/20 rounded-xl border border-gray-200/50 dark:border-gray-800/50">
           <div className="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider mb-1">After-Tax Income</div>
           <div className="text-xl sm:text-2xl font-extrabold text-indigo-600 dark:text-indigo-400">
-            ${formatMoney(afterTaxProjectedAnnualIncome)}<span className="text-xs text-gray-500 font-normal">/yr</span>
+            ${formatMoney(afterTaxIncome)}<span className="text-xs text-gray-500 font-normal">/yr</span>
           </div>
           <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-1.5 leading-relaxed">
-            Adjusted for {goalProps.retirementTaxRate ?? 20}% RRSP withdrawal tax
+            {taxSummary
+              ? <>Estimated ${formatMoney(taxSummary.totalTax)} tax on ${formatMoney(taxSummary.preTaxIncome)} (Quebec 2026)</>
+              : <>Adjusted for {(goalProps.effectiveTaxRate ?? 0).toFixed(1)}% tax</>}
           </div>
         </div>
 
@@ -99,9 +120,71 @@ export function SummaryCard(props: SummaryCardProps) {
       </div>
 
       {/* Special Items / Warnings */}
-      {giftTotal > 0 && (
+      {taxSummary && taxSummary.perPerson.length > 0 && (
         <div className="mb-6 text-xs text-gray-500 dark:text-gray-400 bg-white/20 dark:bg-black/10 p-3 rounded-lg border border-gray-200/20 dark:border-gray-800/20">
-          🎁 Reserving <strong>${formatMoney(giftTotal)}</strong> for planned gifts (excluded from safe withdrawals)
+          <span className="font-semibold text-gray-700 dark:text-gray-300">Estimated 2026 tax:</span>{' '}
+          {taxSummary.perPerson.map((p, i) => (
+            <span key={p.name}>
+              {i > 0 && ' • '}
+              {p.name} ${formatMoney(p.total)}
+            </span>
+          ))}
+          {taxSummary.oasClawback > 0 && (
+            <> (includes ${formatMoney(taxSummary.oasClawback)} OAS clawback)</>
+          )}
+        </div>
+      )}
+
+      {giftTotal > 0 && (
+        <div className="mb-6 overflow-hidden rounded-xl border border-amber-200/70 dark:border-amber-800/50 bg-amber-50/40 dark:bg-amber-900/10">
+          <div className="flex items-center gap-2 px-4 py-2.5 border-b border-amber-200/60 dark:border-amber-800/40 bg-amber-100/50 dark:bg-amber-900/20">
+            <Gift className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            <span className="text-xs font-semibold text-amber-900 dark:text-amber-200">How planned gifts affect income</span>
+          </div>
+          <div className="px-4 py-3 text-xs space-y-0.5">
+            <div className="flex items-center justify-between gap-3 py-0.5">
+              <span className="text-gray-600 dark:text-gray-400">Portfolio at retirement</span>
+              <span className="font-medium tabular-nums whitespace-nowrap text-gray-800 dark:text-gray-200">
+                ${formatMoney(portfolioAtRetirement)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3 py-0.5">
+              <span className="text-gray-600 dark:text-gray-400">
+                <span className="text-rose-500 dark:text-rose-400">−</span> Planned gifts
+              </span>
+              <span className="font-medium tabular-nums whitespace-nowrap text-rose-600 dark:text-rose-400">
+                −${formatMoney(giftTotal)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3 py-1.5 mt-1 border-t border-amber-200/60 dark:border-amber-800/40">
+              <span className="font-medium text-gray-700 dark:text-gray-300">Investable portfolio</span>
+              <span className="font-semibold tabular-nums whitespace-nowrap text-gray-900 dark:text-white">
+                ${formatMoney(portfolioAfterGifts)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3 py-0.5">
+              <span className="text-gray-600 dark:text-gray-400">
+                <span className="text-indigo-500 dark:text-indigo-400">×</span> {withdrawalRate}% withdrawal
+              </span>
+              <span className="tabular-nums whitespace-nowrap text-indigo-600 dark:text-indigo-400">
+                ${formatMoney(portfolioWithdrawal)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3 py-0.5">
+              <span className="text-gray-600 dark:text-gray-400">
+                <span className="text-emerald-500 dark:text-emerald-400">+</span> Pensions / CPP / OAS
+              </span>
+              <span className="tabular-nums whitespace-nowrap text-emerald-600 dark:text-emerald-400">
+                ${formatMoney(guaranteedIncome)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3 mt-1.5 py-2 px-2 -mx-2 rounded-lg bg-amber-100/60 dark:bg-amber-900/30 border border-amber-200/60 dark:border-amber-800/40">
+              <span className="font-semibold text-amber-900 dark:text-amber-200">Pre-tax income</span>
+              <span className="font-bold tabular-nums whitespace-nowrap text-amber-900 dark:text-amber-200">
+                ${formatMoney(projectedAnnualIncome)}
+              </span>
+            </div>
+          </div>
         </div>
       )}
 

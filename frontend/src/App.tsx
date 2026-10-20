@@ -31,7 +31,6 @@ function AppContent() {
         inflationRate: assumptions.inflationRate,
         replacementRate: assumptions.replacementRate,
         withdrawalRate: assumptions.withdrawalRate,
-        retirementTaxRate: assumptions.retirementTaxRate,
         showRealValues: assumptions.showRealValues,
         plannedGifts: assumptions.plannedGifts,
       },
@@ -48,7 +47,6 @@ function AppContent() {
     assumptions.setInflationRate(plan.assumptions.inflationRate)
     assumptions.setReplacementRate(plan.assumptions.replacementRate)
     assumptions.setWithdrawalRate(plan.assumptions.withdrawalRate)
-    assumptions.setRetirementTaxRate(plan.assumptions.retirementTaxRate)
     assumptions.setShowRealValues(plan.assumptions.showRealValues)
     assumptions.setPlannedGifts(plan.assumptions.plannedGifts ?? [])
     peopleApi.setPeople(plan.people)

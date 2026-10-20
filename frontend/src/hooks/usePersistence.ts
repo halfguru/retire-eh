@@ -4,7 +4,7 @@ import { useAssumptions } from '@/contexts/AssumptionsContext'
 
 export function usePersistence() {
   const { people } = usePeople()
-  const { expectedReturn, inflationRate, replacementRate, withdrawalRate, retirementTaxRate, showRealValues, plannedGifts } = useAssumptions()
+  const { expectedReturn, inflationRate, replacementRate, withdrawalRate, showRealValues, plannedGifts } = useAssumptions()
   const [localStorageError, setLocalStorageError] = useState<string | null>(null)
 
   const saveToLocalStorage = useCallback(() => {
@@ -14,6 +14,7 @@ export function usePersistence() {
         localStorage.setItem(`person_${idx}_retirementAge`, String(person.retirementAge))
         localStorage.setItem(`person_${idx}_annualPension`, String(person.annualPension || 0))
         localStorage.setItem(`person_${idx}_annualCpp`, String(person.annualCpp || 0))
+        localStorage.setItem(`person_${idx}_cppStartAge`, String(person.cppStartAge ?? 65))
         person.accounts.forEach((account) => {
           localStorage.setItem(`account_${account.id}_balance`, String(account.balance))
           localStorage.setItem(`account_${account.id}_annualContribution`, String(account.annualContribution))
@@ -25,7 +26,6 @@ export function usePersistence() {
       localStorage.setItem('showRealValues', String(showRealValues))
       localStorage.setItem('replacementRate', String(replacementRate))
       localStorage.setItem('withdrawalRate', String(withdrawalRate))
-      localStorage.setItem('retirementTaxRate', String(retirementTaxRate))
       localStorage.setItem('plannedGifts', JSON.stringify(plannedGifts))
     } catch (error) {
       const message = error instanceof DOMException && error.name === 'QuotaExceededError'
@@ -35,7 +35,7 @@ export function usePersistence() {
       return message
     }
     return null
-  }, [people, expectedReturn, inflationRate, showRealValues, replacementRate, withdrawalRate, retirementTaxRate, plannedGifts])
+  }, [people, expectedReturn, inflationRate, showRealValues, replacementRate, withdrawalRate, plannedGifts])
 
   useEffect(() => {
     const error = saveToLocalStorage()
