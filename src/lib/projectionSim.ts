@@ -157,12 +157,18 @@ export interface RetirementPathParams {
   endAge: number
   annualVolatility?: number
   sims?: number
+  showRealValues?: boolean
+}
+
+export interface RetirementMonteCarloResult {
+  paths: RetirementPathYear[]
+  successRate: number
 }
 
 // Simulates the retirement (decumulation) phase with randomly sampled returns and
-// a constant real withdrawal (the 4% rule). Returns per-age percentile bands in
-// today's dollars so the chart shows both the median and the downside drawdown.
-export function simulateRetirementPaths(params: RetirementPathParams): RetirementPathYear[] {
+// a constant withdrawal based on the starting balance. Returns per-age percentile
+// bands plus the share of simulations that never depleted the portfolio.
+export function runRetirementMonteCarlo(params: RetirementPathParams): RetirementMonteCarloResult {
   const {
     startBalance,
     expectedReturnPct,
@@ -172,33 +178,39 @@ export function simulateRetirementPaths(params: RetirementPathParams): Retiremen
     endAge,
     annualVolatility = 0.13,
     sims = 500,
+    showRealValues = true,
   } = params
 
   const monthlyMean = expectedReturnPct / 100 / 12
   const monthlySd = annualVolatility / Math.sqrt(12)
   const monthlyWithdrawal = (startBalance * (withdrawalRatePct / 100)) / 12
-  const years = endAge - startAge
+  const years = Math.max(0, endAge - startAge)
 
   const perYear: number[][] = Array.from({ length: years + 1 }, () => [])
+  let successes = 0
 
   for (let s = 0; s < sims; s++) {
     let balance = startBalance
+    let depleted = false
     perYear[0].push(balance)
     for (let age = startAge + 1; age <= endAge; age++) {
       for (let m = 0; m < 12; m++) {
         const r = monthlyMean + monthlySd * gaussian()
         balance = balance * (1 + r) - monthlyWithdrawal
-        if (balance < 0) balance = 0
+        if (balance <= 0) {
+          balance = 0
+          depleted = true
+        }
       }
       perYear[age - startAge].push(balance)
     }
+    if (!depleted) successes++
   }
 
   const inflationFactor = (y: number) => Math.pow(1 + inflationPct / 100, y)
-
-  return perYear.map((vals, y) => {
+  const paths = perYear.map((vals, y) => {
     vals.sort((a, b) => a - b)
-    const deflate = (v: number) => v / inflationFactor(y)
+    const deflate = (v: number) => (showRealValues ? v / inflationFactor(y) : v)
     return {
       age: startAge + y,
       p10: deflate(percentile(vals, 0.1)),
@@ -208,4 +220,10 @@ export function simulateRetirementPaths(params: RetirementPathParams): Retiremen
       p90: deflate(percentile(vals, 0.9)),
     }
   })
+
+  return { paths, successRate: sims > 0 ? successes / sims : 0 }
+}
+
+export function simulateRetirementPaths(params: RetirementPathParams): RetirementPathYear[] {
+  return runRetirementMonteCarlo(params).paths
 }

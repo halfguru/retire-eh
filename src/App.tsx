@@ -5,7 +5,9 @@ import { PeopleProvider, usePeople } from '@/contexts/PeopleContext'
 import { AssumptionsProvider, useAssumptions } from '@/contexts/AssumptionsContext'
 import { ProjectionProvider } from '@/contexts/ProjectionContext'
 import { usePersistence } from '@/hooks/usePersistence'
-import { exportToYAML, downloadYAML, uploadYAML } from '@/lib/yaml-utils'
+import { buildRetirementPlan, exportToYAML, downloadYAML, uploadYAML } from '@/lib/yaml-utils'
+import { buildShareUrl, clearShareHash, readSharePlanFromUrl } from '@/lib/share-link'
+import type { RetirementPlan } from '@/types/plan'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { Tabs } from '@/components/Tabs'
@@ -23,26 +25,21 @@ function AppContent() {
   const peopleApi = usePeople()
   const assumptions = useAssumptions()
   const { localStorageError, setLocalStorageError } = usePersistence()
+  const [pendingSharedPlan, setPendingSharedPlan] = useState<RetirementPlan | null>(() =>
+    readSharePlanFromUrl(window.location.href)
+  )
+  const [shareNotice, setShareNotice] = useState<string | null>(null)
 
-  const handleExport = useCallback(() => {
-    const yamlContent = exportToYAML(
-      {
-        expectedReturn: assumptions.expectedReturn,
-        inflationRate: assumptions.inflationRate,
-        replacementRate: assumptions.replacementRate,
-        withdrawalRate: assumptions.withdrawalRate,
-        showRealValues: assumptions.showRealValues,
-        plannedGifts: assumptions.plannedGifts,
-      },
-      peopleApi.people
-    )
-    const date = new Date().toISOString().split('T')[0]
-    downloadYAML(yamlContent, `retirement-plan-${date}.yaml`)
-  }, [assumptions, peopleApi.people])
+  const currentAssumptions = useCallback(() => ({
+    expectedReturn: assumptions.expectedReturn,
+    inflationRate: assumptions.inflationRate,
+    replacementRate: assumptions.replacementRate,
+    withdrawalRate: assumptions.withdrawalRate,
+    showRealValues: assumptions.showRealValues,
+    plannedGifts: assumptions.plannedGifts,
+  }), [assumptions])
 
-  const handleImport = useCallback(async () => {
-    const plan = await uploadYAML()
-    if (!plan) return
+  const applyPlan = useCallback((plan: RetirementPlan) => {
     assumptions.setExpectedReturn(plan.assumptions.expectedReturn)
     assumptions.setInflationRate(plan.assumptions.inflationRate)
     assumptions.setReplacementRate(plan.assumptions.replacementRate)
@@ -54,6 +51,47 @@ function AppContent() {
       peopleApi.setSelectedPersonId(plan.people[0].id)
     }
   }, [assumptions, peopleApi])
+
+  const handleExport = useCallback(() => {
+    const yamlContent = exportToYAML(currentAssumptions(), peopleApi.people)
+    const date = new Date().toISOString().split('T')[0]
+    downloadYAML(yamlContent, `retirement-plan-${date}.yaml`)
+  }, [currentAssumptions, peopleApi.people])
+
+  const handleShare = useCallback(async () => {
+    const plan = buildRetirementPlan(currentAssumptions(), peopleApi.people)
+    const link = buildShareUrl(plan)
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(link)
+        setShareNotice('Share link copied. Anyone with the link can view these numbers.')
+      } else {
+        window.prompt('Copy this share link:', link)
+      }
+    } catch {
+      window.prompt('Copy this share link:', link)
+    }
+  }, [currentAssumptions, peopleApi.people])
+
+  const handleImport = useCallback(async () => {
+    const plan = await uploadYAML()
+    if (!plan) return
+    applyPlan(plan)
+  }, [applyPlan])
+
+  const handleLoadSharedPlan = useCallback(() => {
+    if (!pendingSharedPlan) return
+    applyPlan(pendingSharedPlan)
+    clearShareHash()
+    setPendingSharedPlan(null)
+    setActiveTab('overview')
+    setShareNotice('Shared plan loaded. You can edit it like your own plan.')
+  }, [applyPlan, pendingSharedPlan])
+
+  const handleDismissSharedPlan = useCallback(() => {
+    clearShareHash()
+    setPendingSharedPlan(null)
+  }, [])
 
   const renderTab = () => {
     switch (activeTab) {
@@ -77,7 +115,48 @@ function AppContent() {
         onToggleRealValues={() => assumptions.setShowRealValues(!assumptions.showRealValues)}
         onExport={handleExport}
         onImport={handleImport}
+        onShare={handleShare}
       />
+      {pendingSharedPlan && (
+        <div className="max-w-7xl mx-auto w-full px-4 mt-2">
+          <div className="bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800 rounded-lg p-3 text-sm text-indigo-800 dark:text-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="font-semibold">You've opened a shared retirement plan</div>
+              <p className="mt-0.5 text-indigo-700 dark:text-indigo-300">
+                {pendingSharedPlan.people.map(p => p.name).join(' & ')} · Load it to explore the numbers.
+                This will replace the plan currently saved in this browser.
+              </p>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <button
+                onClick={handleLoadSharedPlan}
+                className="h-9 px-3 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700"
+              >
+                Load shared plan
+              </button>
+              <button
+                onClick={handleDismissSharedPlan}
+                className="h-9 px-3 rounded-lg border border-indigo-300 dark:border-indigo-700 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/50"
+              >
+                Keep my plan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {shareNotice && (
+        <div className="max-w-7xl mx-auto w-full px-4 mt-2">
+          <div className="bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 text-sm text-emerald-800 dark:text-emerald-200 flex items-center justify-between">
+            <span>{shareNotice}</span>
+            <button
+              onClick={() => setShareNotice(null)}
+              className="ml-3 text-emerald-600 hover:text-emerald-800 dark:text-emerald-300 dark:hover:text-emerald-100 font-medium"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
       <Tabs activeTab={activeTab} onChange={(tab) => setActiveTab(tab as TabId)} />
       {localStorageError && (
         <div className="max-w-7xl mx-auto w-full px-4 mt-2">

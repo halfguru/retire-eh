@@ -15,6 +15,7 @@ export function usePersistence() {
         localStorage.setItem(`person_${idx}_annualPension`, String(person.annualPension || 0))
         localStorage.setItem(`person_${idx}_annualCpp`, String(person.annualCpp || 0))
         localStorage.setItem(`person_${idx}_cppStartAge`, String(person.cppStartAge ?? 65))
+        localStorage.setItem(`person_${idx}_oasStartAge`, String(person.oasStartAge ?? 65))
         person.accounts.forEach((account) => {
           localStorage.setItem(`account_${account.id}_balance`, String(account.balance))
           localStorage.setItem(`account_${account.id}_annualContribution`, String(account.annualContribution))

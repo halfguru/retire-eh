@@ -4,7 +4,15 @@ import { InfoTooltip } from './InfoTooltip'
 import { AccountCard } from './AccountCard'
 import { NumberInput } from '@/components/ui/NumberInput'
 import { validateAge, validateRetirementAge } from '@/lib/validation'
-import { CPP_MIN_START_AGE, CPP_MAX_START_AGE, getCppIncomeAtAge } from '@/lib/calculations'
+import {
+  CPP_MIN_START_AGE,
+  CPP_MAX_START_AGE,
+  OAS_MIN_START_AGE,
+  OAS_MAX_START_AGE,
+  getCppIncomeAtAge,
+  getOasIncomeAtAge,
+} from '@/lib/calculations'
+import { OAS_MAX_ANNUAL_2026 } from '@/lib/tax'
 import { formatMoney } from '@/lib/formatting'
 
 interface PersonFormProps {
@@ -58,6 +66,7 @@ export function PersonForm({
   if (!person) return null
 
   const cppStartAge = person.cppStartAge ?? 65
+  const oasStartAge = person.oasStartAge ?? 65
 
   const canDeletePerson = people.length > 1
 
@@ -149,6 +158,26 @@ export function PersonForm({
               return (
                 <option key={age} value={age}>
                   {adjusted > 0 ? `${age} ($${formatMoney(adjusted)}/yr)` : age}
+                </option>
+              )
+            })}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+            OAS Start Age
+            <InfoTooltip text="The age you plan to start Old Age Security (65 to 70). Deferring past 65 permanently increases the amount by 0.6% per month (7.2% per year), up to age 70. OAS is not counted as retirement income before this age." />
+          </label>
+          <select
+            value={oasStartAge}
+            onChange={(e) => onUpdatePerson(person.id, 'oasStartAge', Number(e.target.value))}
+            className="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+          >
+            {Array.from({ length: OAS_MAX_START_AGE - OAS_MIN_START_AGE + 1 }, (_, i) => OAS_MIN_START_AGE + i).map((age) => {
+              const adjusted = getOasIncomeAtAge(OAS_MAX_ANNUAL_2026, age, age)
+              return (
+                <option key={age} value={age}>
+                  {age} (${formatMoney(adjusted)}/yr)
                 </option>
               )
             })}

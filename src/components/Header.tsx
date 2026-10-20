@@ -1,4 +1,4 @@
-import { Sun, Moon, Download, Upload, PiggyBank } from 'lucide-react'
+import { Sun, Moon, Download, Upload, Share2, PiggyBank } from 'lucide-react'
 
 interface HeaderProps {
   isDarkMode: boolean
@@ -7,6 +7,7 @@ interface HeaderProps {
   onToggleRealValues: () => void
   onExport: () => void
   onImport: () => void
+  onShare: () => void
 }
 
 export function Header({
@@ -15,7 +16,8 @@ export function Header({
   onToggleDarkMode,
   onToggleRealValues,
   onExport,
-  onImport
+  onImport,
+  onShare
 }: HeaderProps) {
   return (
     <header className="bg-white/80 dark:bg-gray-900/70 backdrop-blur-md border-b border-gray-200/70 dark:border-gray-700/70">
@@ -48,6 +50,13 @@ export function Header({
               title="Import plan from YAML"
             >
               <Upload className="w-4 h-4 shrink-0" /> <span className="hidden sm:inline">Import</span>
+            </button>
+            <button
+              onClick={onShare}
+              className="flex items-center justify-center gap-2 h-10 px-3 text-sm font-medium rounded-lg border-2 transition-all bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-indigo-500 dark:hover:border-indigo-400"
+              title="Copy a share link to this plan"
+            >
+              <Share2 className="w-4 h-4 shrink-0" /> <span className="hidden sm:inline">Share</span>
             </button>
             <div className="relative inline-block group">
               <button

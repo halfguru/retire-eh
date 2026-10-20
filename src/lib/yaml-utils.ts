@@ -5,11 +5,11 @@ import { validateYamlImport } from '@/lib/validation'
 
 export type { PlanAssumptions, RetirementPlan } from '@/types/household'
 
-export function exportToYAML(
+export function buildRetirementPlan(
   assumptions: PlanAssumptions,
   people: Person[]
-): string {
-  const plan: RetirementPlan = {
+): RetirementPlan {
+  return {
     version: '1.0',
     assumptions,
     people: people.map(p => ({
@@ -21,10 +21,17 @@ export function exportToYAML(
       annualPension: p.annualPension,
       annualCpp: p.annualCpp,
       cppStartAge: p.cppStartAge ?? 65,
+      oasStartAge: p.oasStartAge ?? 65,
       accounts: p.accounts
     }))
   }
-  return yaml.dump(plan, { indent: 2 })
+}
+
+export function exportToYAML(
+  assumptions: PlanAssumptions,
+  people: Person[]
+): string {
+  return yaml.dump(buildRetirementPlan(assumptions, people), { indent: 2 })
 }
 
 export function importFromYAML(yamlString: string): RetirementPlan | null {

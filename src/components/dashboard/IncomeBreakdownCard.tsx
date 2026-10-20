@@ -9,7 +9,6 @@ interface IncomeBreakdownCardProps {
   annualCpp: number
   annualOas: number
   withdrawalRate: number
-  retirementAge: number
   showRealValues: boolean
   inflationRate: number
   yearsToRetirement: number
@@ -25,7 +24,6 @@ export function IncomeBreakdownCard({
   annualCpp,
   annualOas,
   withdrawalRate,
-  retirementAge,
   showRealValues,
   inflationRate,
   yearsToRetirement,
@@ -64,7 +62,7 @@ export function IncomeBreakdownCard({
     {
       name: 'OAS (estimated)',
       amount: oasEstimate,
-      description: retirementAge >= 65 ? 'Max OAS at 65+' : 'Available at 65',
+      description: 'Adjusted for your start age; not counted before it begins',
       color: '#f59e0b'
     },
     {

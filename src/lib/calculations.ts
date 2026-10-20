@@ -67,6 +67,32 @@ export function getCppIncomeAtAge(
   return (annualCppAt65 || 0) * cppAdjustmentFactor(resolvedStartAge)
 }
 
+export const OAS_BASELINE_AGE = 65
+export const OAS_MIN_START_AGE = 65
+export const OAS_MAX_START_AGE = 70
+
+export function clampOasStartAge(startAge: number): number {
+  return Math.min(OAS_MAX_START_AGE, Math.max(OAS_MIN_START_AGE, Math.round(startAge)))
+}
+
+// OAS can be deferred past 65 for a permanent +0.6% per month (+7.2%/year),
+// up to age 70. The entered amount is treated as the age-65 baseline.
+export function oasAdjustmentFactor(startAge: number): number {
+  const age = clampOasStartAge(startAge)
+  return 1 + 0.006 * 12 * (age - OAS_BASELINE_AGE)
+}
+
+// OAS only counts as retirement income once the person reaches their chosen start age.
+export function getOasIncomeAtAge(
+  annualOasAt65: number | undefined,
+  startAge: number | undefined,
+  age: number,
+): number {
+  const resolvedStartAge = clampOasStartAge(startAge ?? OAS_BASELINE_AGE)
+  if (age < resolvedStartAge) return 0
+  return (annualOasAt65 || 0) * oasAdjustmentFactor(resolvedStartAge)
+}
+
 export interface RetirementGoalResult {
   portfolioAtRetirement: number
   requiredAnnualIncome: number
