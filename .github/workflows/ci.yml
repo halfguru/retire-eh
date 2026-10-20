@@ -7,8 +7,8 @@ on:
     branches: [main, develop]
 
 jobs:
-  frontend:
-    name: Frontend
+  test:
+    name: Test & Build
     runs-on: ubuntu-latest
 
     steps:
@@ -41,54 +41,3 @@ jobs:
       - name: Build
         working-directory: ./frontend
         run: npm run build
-
-  backend:
-    name: Backend
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: stable
-
-      - name: Cache cargo registry
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            backend/target
-          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            cargo-${{ runner.os }}-
-
-      - name: Cache wasm-pack
-        id: cache-wasm-pack
-        uses: actions/cache@v5
-        with:
-          path: ~/.cargo/bin/wasm-pack
-          key: wasm-pack-${{ runner.os }}
-
-      - name: Install wasm-pack
-        if: steps.cache-wasm-pack.outputs.cache-hit != 'true'
-        run: cargo install wasm-pack
-
-      - name: Run tests
-        working-directory: ./backend
-        run: cargo test
-
-      - name: Lint
-        working-directory: ./backend
-        run: cargo clippy -- -D warnings
-
-      - name: Format check
-        working-directory: ./backend
-        run: cargo fmt -- --check
-
-      - name: Build WASM
-        working-directory: ./backend
-        run: wasm-pack build --target web

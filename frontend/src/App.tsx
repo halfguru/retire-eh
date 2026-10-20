@@ -3,9 +3,8 @@ import './App.css'
 import { useDarkMode } from '@/hooks/useDarkMode'
 import { PeopleProvider, usePeople } from '@/contexts/PeopleContext'
 import { AssumptionsProvider, useAssumptions } from '@/contexts/AssumptionsContext'
-import { ProjectionProvider, useProjectionContext } from '@/contexts/ProjectionContext'
+import { ProjectionProvider } from '@/contexts/ProjectionContext'
 import { usePersistence } from '@/hooks/usePersistence'
-import { AlertTriangle } from 'lucide-react'
 import { exportToYAML, downloadYAML, uploadYAML } from '@/lib/yaml-utils'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
@@ -23,7 +22,6 @@ function AppContent() {
   const [isDarkMode, setIsDarkMode] = useDarkMode()
   const peopleApi = usePeople()
   const assumptions = useAssumptions()
-  const projection = useProjectionContext()
   const { localStorageError, setLocalStorageError } = usePersistence()
 
   const handleExport = useCallback(() => {
@@ -98,32 +96,7 @@ function AppContent() {
       )}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-6 sm:py-8">
         <ErrorBoundary>
-          {projection.wasmError ? (
-            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-6 text-center">
-              <div className="mb-3"><AlertTriangle className="w-10 h-10 text-warning" /></div>
-              <h2 className="text-lg font-semibold text-amber-700 dark:text-amber-300 mb-2">
-                Calculation engine failed to load
-              </h2>
-              <p className="text-sm text-amber-600 dark:text-amber-400 mb-4">
-                The retirement calculation engine could not be loaded. You can still edit your plan, but projections won't be available.
-              </p>
-              <button
-                onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-amber-100 dark:bg-amber-800 text-amber-700 dark:text-amber-200 rounded-md hover:bg-amber-200 dark:hover:bg-amber-700 transition-colors text-sm font-medium"
-              >
-                Reload page
-              </button>
-            </div>
-          ) : !projection.wasmLoaded ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-3" />
-                <p className="text-sm text-gray-500 dark:text-gray-400">Loading calculation engine…</p>
-              </div>
-            </div>
-          ) : (
-            renderTab()
-          )}
+          {renderTab()}
         </ErrorBoundary>
       </main>
       <Footer />
