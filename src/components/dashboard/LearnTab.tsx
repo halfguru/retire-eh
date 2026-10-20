@@ -150,7 +150,9 @@ const sections: LearnSection[] = [
           <div className="p-3 bg-amber-50 dark:bg-amber-900/30 rounded-lg">
             <strong className="text-amber-700 dark:text-amber-300">OAS (Old Age Security)</strong>
             <p className="mt-1 text-xs">
-              Available at 65, based on residency (40 years in Canada for the full amount). Maximum ~$752/month in 2026. Clawed back at high income (starting ~$95k).
+              Available at 65, based on residency (40 years in Canada for the full amount). Maximum ~$752/month in 2026.
+              You can defer OAS to as late as 70 for a permanent increase of 0.6% per month (7.2%/year). Set your{' '}
+              <strong>OAS Start Age</strong> on the Plan tab. Clawed back at high income (starting ~$95k).
             </p>
           </div>
         </div>

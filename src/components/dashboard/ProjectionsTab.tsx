@@ -3,12 +3,15 @@ import { useProjectionContext } from '@/contexts/ProjectionContext'
 import { useAssumptions } from '@/contexts/AssumptionsContext'
 import { useDarkMode } from '@/hooks/useDarkMode'
 import { getPortfolioAtRetirement } from '@/lib/calculations'
+import { BenefitTimingCard } from './BenefitTimingCard'
 import { BarChart3 } from 'lucide-react'
 
 const GrowthChart = lazy(() => import('./GrowthChart').then(m => ({ default: m.GrowthChart })))
 const MonteCarloChart = lazy(() => import('./MonteCarloChart').then(m => ({ default: m.MonteCarloChart })))
 const ContributionGrowthChart = lazy(() => import('./ContributionGrowthChart').then(m => ({ default: m.ContributionGrowthChart })))
 const DrawdownChart = lazy(() => import('./DrawdownChart').then(m => ({ default: m.DrawdownChart })))
+const RetirementCashFlowTable = lazy(() => import('./RetirementCashFlowTable').then(m => ({ default: m.RetirementCashFlowTable })))
+const RetirementMonteCarloChart = lazy(() => import('./RetirementMonteCarloChart').then(m => ({ default: m.RetirementMonteCarloChart })))
 
 function ChartFallback() {
   return (
@@ -23,6 +26,7 @@ export function ProjectionsTab() {
   const projection = useProjectionContext()
   const assumptions = useAssumptions()
   const [accumulationView, setAccumulationView] = useState<'growth' | 'contributions' | 'volatility'>('growth')
+  const [decumulationView, setDecumulationView] = useState<'rates' | 'cashflow' | 'volatility'>('rates')
 
   const projectionData = projection.currentProjectionData
   const startAge = projectionData.length > 0 ? projectionData[0].age : 0
@@ -110,24 +114,78 @@ export function ProjectionsTab() {
 
       {/* 2. Decumulation Phase (Spending) Section */}
       <div className="space-y-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-        <div>
-          <h2 className="text-xl font-bold text-gray-800 dark:text-white">2. Spending Phase (Decumulation)</h2>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Projecting how long your savings will last in retirement</p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200/50 dark:border-gray-700/50 pb-3">
+          <div>
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white">2. Spending Phase (Decumulation)</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Projecting how long your savings will last in retirement</p>
+          </div>
+
+          <div className="flex flex-wrap bg-gray-100 dark:bg-gray-800 p-1 rounded-xl self-start md:self-center">
+            <button
+              onClick={() => setDecumulationView('rates')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                decumulationView === 'rates'
+                  ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-250'
+              }`}
+            >
+              Withdrawal Rates
+            </button>
+            <button
+              onClick={() => setDecumulationView('cashflow')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                decumulationView === 'cashflow'
+                  ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-250'
+              }`}
+            >
+              Cash Flow Table
+            </button>
+            <button
+              onClick={() => setDecumulationView('volatility')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                decumulationView === 'volatility'
+                  ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-250'
+              }`}
+            >
+              Market Volatility (Monte Carlo)
+            </button>
+          </div>
         </div>
 
         <Suspense fallback={<ChartFallback />}>
-          <DrawdownChart
-            isDarkMode={isDarkMode}
-            startBalance={startBalance}
-            expectedReturn={assumptions.expectedReturn}
-            inflationRate={assumptions.inflationRate}
-            withdrawalRate={assumptions.withdrawalRate}
-            startAge={retirementAge}
-            showRealValues={assumptions.showRealValues}
-            plannedGifts={assumptions.plannedGifts}
-            minCurrentAge={projection.minCurrentAge}
-          />
+          {decumulationView === 'rates' && (
+            <DrawdownChart
+              isDarkMode={isDarkMode}
+              startBalance={startBalance}
+              expectedReturn={assumptions.expectedReturn}
+              inflationRate={assumptions.inflationRate}
+              withdrawalRate={assumptions.withdrawalRate}
+              startAge={retirementAge}
+              showRealValues={assumptions.showRealValues}
+              plannedGifts={assumptions.plannedGifts}
+              minCurrentAge={projection.minCurrentAge}
+            />
+          )}
+          {decumulationView === 'cashflow' && <RetirementCashFlowTable />}
+          {decumulationView === 'volatility' && (
+            <RetirementMonteCarloChart
+              isDarkMode={isDarkMode}
+              startBalance={startBalance}
+              expectedReturn={assumptions.expectedReturn}
+              inflationRate={assumptions.inflationRate}
+              withdrawalRate={assumptions.withdrawalRate}
+              startAge={retirementAge}
+              showRealValues={assumptions.showRealValues}
+            />
+          )}
         </Suspense>
+      </div>
+
+      {/* 3. Government Benefit Timing */}
+      <div className="pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+        <BenefitTimingCard />
       </div>
 
       {/* Educational Footer Info */}

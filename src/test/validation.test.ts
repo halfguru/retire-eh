@@ -154,6 +154,33 @@ describe('validateYamlImport', () => {
     }
   })
 
+  it('fails for OAS start age outside 65-70', () => {
+    const belowRange = validateYamlImport({
+      ...validPlan,
+      people: [{
+        ...validPlan.people[0],
+        oasStartAge: 64,
+      }],
+    })
+    const aboveRange = validateYamlImport({
+      ...validPlan,
+      people: [{
+        ...validPlan.people[0],
+        oasStartAge: 71,
+      }],
+    })
+    expect(belowRange.success).toBe(false)
+    expect(aboveRange.success).toBe(false)
+  })
+
+  it('defaults OAS start age to 65 when omitted', () => {
+    const result = validateYamlImport(validPlan)
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.people[0].oasStartAge).toBe(65)
+    }
+  })
+
   it('fails for zero withdrawal rate', () => {
     const result = validateYamlImport({
       ...validPlan,

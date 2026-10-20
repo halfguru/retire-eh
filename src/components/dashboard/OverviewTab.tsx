@@ -1,8 +1,10 @@
 import { SummaryCard } from './SummaryCard'
+import { PlanNarrativeCard } from './PlanNarrativeCard'
 import { PortfolioCard } from './PortfolioCard'
 import { RetirementProjectionCard } from './RetirementProjectionCard'
 import { GoalsCard } from './GoalsCard'
 import { IncomeBreakdownCard } from './IncomeBreakdownCard'
+import { RetirementTaxTable } from './RetirementTaxTable'
 import { usePeople } from '@/contexts/PeopleContext'
 import { useAssumptions } from '@/contexts/AssumptionsContext'
 import { useProjectionContext } from '@/contexts/ProjectionContext'
@@ -61,7 +63,6 @@ export function OverviewTab() {
           annualCpp={projection.totalAnnualCpp}
           annualOas={projection.totalAnnualOas}
           withdrawalRate={assumptions.withdrawalRate}
-          retirementAge={projection.householdRetirementAge}
           showRealValues={assumptions.showRealValues}
           inflationRate={assumptions.inflationRate}
           yearsToRetirement={projection.yearsToRetirement}
@@ -85,6 +86,8 @@ export function OverviewTab() {
         />
       </div>
 
+      <RetirementTaxTable />
+
       <div className="card p-4 sm:p-6">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
           <ClipboardList className="w-5 h-5 text-primary" />
@@ -101,7 +104,7 @@ export function OverviewTab() {
           </div>
           <div>
             <strong className="text-gray-800 dark:text-gray-200">OAS (Old Age Security):</strong>{' '}
-            Government benefit available at age 65. Maximum in 2026 is about $752/month. Clawed back at high income levels (starting ~$95k).
+            Government benefit available at age 65; deferring to as late as 70 increases it by 0.6% per month. Maximum in 2026 is about $752/month. Clawed back at high income levels (starting ~$95k).
           </div>
           <div>
             <strong className="text-gray-800 dark:text-gray-200">Employer Pension:</strong>{' '}
@@ -109,6 +112,8 @@ export function OverviewTab() {
           </div>
         </div>
       </div>
+
+      <PlanNarrativeCard />
     </div>
   )
 }

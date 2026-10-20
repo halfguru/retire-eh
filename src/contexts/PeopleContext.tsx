@@ -60,6 +60,7 @@ const defaultPeople: Person[] = [
     annualPension: 0,
     annualCpp: MAX_CPP_ANNUAL,
     cppStartAge: 65,
+    oasStartAge: 65,
     accounts: [
       { id: '1-1', type: 'RRSP', balance: 100000, annualContribution: 0 },
       { id: '1-2', type: 'TFSA', balance: 80000, annualContribution: 0 },
@@ -108,7 +109,7 @@ export function usePeople() {
     setSelectedPersonId,
     addPerson: () => {
       const newId = crypto.randomUUID()
-      dispatch({ type: 'ADD_PERSON', payload: { id: newId, name: `Person ${people.length + 1}`, currentAge: 35, retirementAge: 65, annualIncome: 0, annualPension: 0, annualCpp: MAX_CPP_ANNUAL, cppStartAge: 65, accounts: [] } })
+      dispatch({ type: 'ADD_PERSON', payload: { id: newId, name: `Person ${people.length + 1}`, currentAge: 35, retirementAge: 65, annualIncome: 0, annualPension: 0, annualCpp: MAX_CPP_ANNUAL, cppStartAge: 65, oasStartAge: 65, accounts: [] } })
       setSelectedPersonId(newId)
     },
     deletePerson: (id: string) => dispatch({ type: 'DELETE_PERSON', payload: id }),

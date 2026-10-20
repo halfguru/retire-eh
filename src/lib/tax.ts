@@ -8,7 +8,8 @@
 //
 // Approximations to keep in mind:
 // - All income is assumed to be ordinary income (no capital gains/dividends).
-// - The Quebec age and retirement-income amounts are not phased out.
+// - The Quebec age and retirement-income amounts are phased out on individual
+//   income, not net family income.
 // - The pension income credit uses entered employer pension only.
 
 export interface TaxBracket {
@@ -46,6 +47,8 @@ export const FEDERAL_PENSION_AMOUNT_2026 = 2000
 export const QUEBEC_BPA_2026 = 18952
 export const QUEBEC_AGE_AMOUNT_2026 = 3986
 export const QUEBEC_RETIREMENT_AMOUNT_2026 = 3541
+export const QUEBEC_CREDIT_REDUCTION_THRESHOLD_2026 = 42955
+export const QUEBEC_CREDIT_REDUCTION_RATE = 0.1875
 
 export const OAS_MAX_ANNUAL_2026 = 9024
 export const OAS_CLAWBACK_THRESHOLD_2026 = 95323
@@ -84,6 +87,25 @@ function federalAgeAmount(income: number): number {
   return Math.max(0, FEDERAL_AGE_AMOUNT_2026 - 0.15 * Math.max(0, income - FEDERAL_AGE_AMOUNT_THRESHOLD_2026))
 }
 
+function quebecAgeAndRetirementAmounts(
+  income: number,
+  age: number,
+  eligiblePensionIncome: number,
+): number {
+  if (age < 65) return 0
+
+  const retirementAmount = Math.min(
+    QUEBEC_RETIREMENT_AMOUNT_2026,
+    Math.max(0, eligiblePensionIncome) * 1.25,
+  )
+  const eligible = QUEBEC_AGE_AMOUNT_2026 + retirementAmount
+  const reduction = Math.min(
+    eligible,
+    QUEBEC_CREDIT_REDUCTION_RATE * Math.max(0, income - QUEBEC_CREDIT_REDUCTION_THRESHOLD_2026),
+  )
+  return Math.max(0, eligible - reduction)
+}
+
 export function combinedMarginalRate(income: number): number {
   const federal = marginalRate(income, FEDERAL_BRACKETS_2026) * (1 - QUEBEC_ABATEMENT)
   const quebec = marginalRate(income, QUEBEC_BRACKETS_2026)
@@ -111,34 +133,34 @@ export function computePersonTax({
   oasReceived,
   eligiblePensionIncome,
 }: PersonTaxInput): PersonTaxResult {
-  const income = Math.max(0, taxableIncome)
-
-  let federalCredits = federalBasicPersonalAmount(income)
-  if (age >= 65) federalCredits += federalAgeAmount(income)
-  federalCredits += Math.min(FEDERAL_PENSION_AMOUNT_2026, Math.max(0, eligiblePensionIncome))
-
-  const federalBeforeCredits = progressiveTax(income, FEDERAL_BRACKETS_2026)
-  const federalAfterCredits = Math.max(0, federalBeforeCredits - federalCredits * (FEDERAL_LOWEST_RATE / 100))
-  const federal = federalAfterCredits * (1 - QUEBEC_ABATEMENT)
-
-  let quebecCredits = QUEBEC_BPA_2026
-  if (age >= 65) quebecCredits += QUEBEC_AGE_AMOUNT_2026
-  if (age >= 65 && eligiblePensionIncome > 0) quebecCredits += QUEBEC_RETIREMENT_AMOUNT_2026
-
-  const quebecBeforeCredits = progressiveTax(income, QUEBEC_BRACKETS_2026)
-  const quebec = Math.max(0, quebecBeforeCredits - quebecCredits * (QUEBEC_LOWEST_RATE / 100))
+  const netIncome = Math.max(0, taxableIncome)
 
   const oasClawback = Math.min(
     Math.max(0, oasReceived),
-    OAS_RECOVERY_RATE * Math.max(0, income - OAS_CLAWBACK_THRESHOLD_2026),
+    OAS_RECOVERY_RATE * Math.max(0, netIncome - OAS_CLAWBACK_THRESHOLD_2026),
   )
+  const taxableIncomeAfterClawback = Math.max(0, netIncome - oasClawback)
+
+  let federalCredits = federalBasicPersonalAmount(netIncome)
+  if (age >= 65) federalCredits += federalAgeAmount(netIncome)
+  federalCredits += Math.min(FEDERAL_PENSION_AMOUNT_2026, Math.max(0, eligiblePensionIncome))
+
+  const federalBeforeCredits = progressiveTax(taxableIncomeAfterClawback, FEDERAL_BRACKETS_2026)
+  const federalAfterCredits = Math.max(0, federalBeforeCredits - federalCredits * (FEDERAL_LOWEST_RATE / 100))
+  const federal = federalAfterCredits * (1 - QUEBEC_ABATEMENT)
+
+  const quebecCredits =
+    QUEBEC_BPA_2026 + quebecAgeAndRetirementAmounts(netIncome, age, eligiblePensionIncome)
+
+  const quebecBeforeCredits = progressiveTax(taxableIncomeAfterClawback, QUEBEC_BRACKETS_2026)
+  const quebec = Math.max(0, quebecBeforeCredits - quebecCredits * (QUEBEC_LOWEST_RATE / 100))
 
   return {
     federal,
     quebec,
     oasClawback,
     total: federal + quebec + oasClawback,
-    marginalRate: combinedMarginalRate(income),
+    marginalRate: combinedMarginalRate(taxableIncomeAfterClawback),
   }
 }
 
@@ -234,7 +256,7 @@ export function computeRetirementTaxSummary(params: {
       cpp: p.cpp,
       oas: p.oas,
       rrifWithdrawal: allocation[i],
-      taxableIncome,
+      taxableIncome: Math.max(0, taxableIncome - tax.oasClawback),
       ...tax,
     }
   })

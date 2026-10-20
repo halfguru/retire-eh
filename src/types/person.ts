@@ -14,5 +14,6 @@ export interface Person {
   annualPension: number
   annualCpp?: number
   cppStartAge?: number
+  oasStartAge?: number
   accounts: Account[]
 }

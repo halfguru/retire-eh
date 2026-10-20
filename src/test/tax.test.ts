@@ -98,6 +98,55 @@ describe('computePersonTax', () => {
     expect(result.oasClawback).toBe(9024)
   })
 
+  it('phases out Quebec age and retirement amounts above the reduction threshold', () => {
+    const lower = computePersonTax({
+      taxableIncome: 50000,
+      age: 65,
+      oasReceived: 0,
+      eligiblePensionIncome: 70000,
+    })
+    const higher = computePersonTax({
+      taxableIncome: 51000,
+      age: 65,
+      oasReceived: 0,
+      eligiblePensionIncome: 70000,
+    })
+    expect(higher.quebec - lower.quebec).toBeGreaterThan(160)
+  })
+
+  it('fully phases out Quebec age and retirement amounts at higher income', () => {
+    const lower = computePersonTax({
+      taxableIncome: 100000,
+      age: 65,
+      oasReceived: 0,
+      eligiblePensionIncome: 70000,
+    })
+    const higher = computePersonTax({
+      taxableIncome: 101000,
+      age: 65,
+      oasReceived: 0,
+      eligiblePensionIncome: 70000,
+    })
+    expectClose(higher.quebec - lower.quebec, 190)
+  })
+
+  it('deducts the OAS clawback from income before calculating tax', () => {
+    const withClawback = computePersonTax({
+      taxableIncome: 120000,
+      age: 67,
+      oasReceived: 9024,
+      eligiblePensionIncome: 0,
+    })
+    const reducedIncome = computePersonTax({
+      taxableIncome: 120000 - withClawback.oasClawback,
+      age: 67,
+      oasReceived: 0,
+      eligiblePensionIncome: 0,
+    })
+    expectClose(withClawback.federal, reducedIncome.federal)
+    expectClose(withClawback.quebec, reducedIncome.quebec)
+  })
+
   it('reduces tax at 65+ with age and pension credits', () => {
     const younger = computePersonTax({
       taxableIncome: 100000,
