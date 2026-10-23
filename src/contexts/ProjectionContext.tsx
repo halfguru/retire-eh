@@ -2,7 +2,7 @@ import { createContext, useContext, useMemo, type ReactNode } from 'react'
 import { usePeople } from './PeopleContext'
 import { useAssumptions } from './AssumptionsContext'
 import { projectPersonAccounts } from '@/lib/engine'
-import { getCppIncomeAtAge, getGiftTotal, getOasIncomeAtAge } from '@/lib/calculations'
+import { buildGuaranteedIncomeSchedule, getCppIncomeAtAge, getGiftTotal, getOasIncomeAtAge } from '@/lib/calculations'
 import { computeRetirementTaxSummary, OAS_MAX_ANNUAL_2026, type RetirementTaxSummary } from '@/lib/tax'
 import type { ProjectionDataPoint } from '@/types/projection'
 
@@ -21,6 +21,7 @@ interface ProjectionContextValueTyped {
   totalAnnualPension: number
   totalAnnualCpp: number
   totalAnnualOas: number
+  guaranteedIncomeSchedule: number[]
   totalPortfolio: number
   totalAnnualContributions: number
   retirementTax: RetirementTaxSummary | null
@@ -28,16 +29,19 @@ interface ProjectionContextValueTyped {
 
 const ProjectionContext = createContext<ProjectionContextValueTyped | null>(null)
 
-// Each person accumulates to their own retirement age; after that their
-// portfolio is frozen (no more contributions, pre-retirement drawdown is out
-// of scope here). We project every person on their own timeline and sum the
-// result by age so contributions stop per person, not at a single household age.
-function buildCombinedProjection(
+// Each person accumulates to their own retirement age. After that their
+// portfolio keeps compounding (no more contributions; pre-retirement drawdown
+// is out of scope here). We project every person on their own timeline and sum
+// the result by age so contributions stop per person, not at a single
+// household age.
+export function buildCombinedProjection(
   people: { currentAge: number; retirementAge: number; accounts: import('@/types/person').Account[] }[],
   expectedReturn: number,
   inflationRate: number,
   showRealValues: boolean,
-  householdRetirementAge: number
+  householdRetirementAge: number,
+  workingMarginalTaxRate: number,
+  reinvestRrspRefund: boolean,
 ): ProjectionDataPoint[] {
   if (people.length === 0) return []
 
@@ -45,8 +49,15 @@ function buildCombinedProjection(
   const endAge = householdRetirementAge
   const currentYear = new Date().getFullYear()
 
-  const perPerson = people.map(p =>
-    projectPersonAccounts(
+  const perPerson = people.map(p => {
+    const rrspContribution = p.accounts
+      .filter(account => account.type === 'RRSP')
+      .reduce((sum, account) => sum + (account.annualContribution || 0), 0)
+    const rrspRefundAnnual = reinvestRrspRefund
+      ? rrspContribution * (workingMarginalTaxRate / 100)
+      : 0
+
+    return projectPersonAccounts(
       p.accounts,
       p.retirementAge,
       p.currentAge,
@@ -54,11 +65,16 @@ function buildCombinedProjection(
       inflationRate,
       showRealValues,
       p.retirementAge - p.currentAge,
-      currentYear
+      currentYear,
+      { rrspRefundAnnual }
     )
-  )
+  })
 
   const combined: ProjectionDataPoint[] = []
+  // Match the engine's monthly compounding. Real values are deflated annually,
+  // so the real growth factor is nominal monthly growth divided by annual inflation.
+  const monthlyGrowth = 1 + expectedReturn / 100 / 12
+
   // Align people by years from today, not by age. Household members are
   // different ages, so age 65 for one person is a different calendar year than
   // age 65 for another.
@@ -76,15 +92,18 @@ function buildCombinedProjection(
       const lastIndex = proj.length - 1
       const point = proj[Math.min(offset, lastIndex)]
 
-      // A frozen portfolio still loses purchasing power to inflation. The
-      // per-person projection stops deflating at that person's retirement age,
-      // so continue deflating here until the household retirement age.
-      const frozenDeflation = showRealValues && offset > lastIndex
-        ? Math.pow(1 + inflationRate / 100, offset - lastIndex)
-        : 1
-      const pointTotal = (point.Total ?? 0) / frozenDeflation
-      const pointRrsp = point.RRSP !== undefined ? point.RRSP / frozenDeflation : undefined
-      const pointTfsa = point.TFSA !== undefined ? point.TFSA / frozenDeflation : undefined
+      // The per-person projection stops at that person's retirement age. If
+      // the household retires later, keep compounding the early retiree's
+      // balance at the expected return instead of freezing it. Real-dollar
+      // mode compounds at the real return; nominal mode at the nominal return.
+      const yearsAfterRetirement = Math.max(0, offset - lastIndex)
+      const nominalFactor = Math.pow(monthlyGrowth, yearsAfterRetirement * 12)
+      const growthFactor = showRealValues
+        ? nominalFactor / Math.pow(1 + inflationRate / 100, yearsAfterRetirement)
+        : nominalFactor
+      const pointTotal = (point.Total ?? 0) * growthFactor
+      const pointRrsp = point.RRSP !== undefined ? point.RRSP * growthFactor : undefined
+      const pointTfsa = point.TFSA !== undefined ? point.TFSA * growthFactor : undefined
 
       total += pointTotal
       if (pointRrsp !== undefined) { rrsp += pointRrsp; hasRrsp = true }
@@ -125,6 +144,7 @@ function scaleRetirementTaxSummary(
     portfolioWithdrawal: summary.portfolioWithdrawal * factor,
     taxableWithdrawal: summary.taxableWithdrawal * factor,
     taxFreeWithdrawal: summary.taxFreeWithdrawal * factor,
+    rrspTax: summary.rrspTax * factor,
     totalTax: summary.totalTax * factor,
     oasClawback: summary.oasClawback * factor,
     preTaxIncome: summary.preTaxIncome * factor,
@@ -134,7 +154,15 @@ function scaleRetirementTaxSummary(
 
 export function ProjectionProvider({ children }: { children: ReactNode }) {
   const { people } = usePeople()
-  const { expectedReturn, inflationRate, showRealValues, withdrawalRate, plannedGifts } = useAssumptions()
+  const {
+    expectedReturn,
+    inflationRate,
+    showRealValues,
+    withdrawalRate,
+    plannedGifts,
+    workingMarginalTaxRate,
+    reinvestRrspRefund,
+  } = useAssumptions()
 
   const householdRetirementAge = people.length ? Math.max(...people.map(p => p.retirementAge)) : 0
   const minCurrentAge = people.length ? Math.min(...people.map(p => p.currentAge)) : 0
@@ -153,21 +181,26 @@ export function ProjectionProvider({ children }: { children: ReactNode }) {
   const totalPortfolio = allAccounts.reduce((sum, acc) => sum + (acc.balance || 0), 0)
   const totalAnnualContributions = allAccounts.reduce((sum, acc) => sum + (acc.annualContribution || 0), 0)
 
+  const guaranteedIncomeSchedule = useMemo(
+    () => buildGuaranteedIncomeSchedule({ people, householdRetirementAge, yearsToRetirement }),
+    [people, householdRetirementAge, yearsToRetirement]
+  )
+
   const projectionData = useMemo(
-    () => buildCombinedProjection(people, expectedReturn, inflationRate, showRealValues, householdRetirementAge),
-    [people, expectedReturn, inflationRate, showRealValues, householdRetirementAge]
+    () => buildCombinedProjection(people, expectedReturn, inflationRate, showRealValues, householdRetirementAge, workingMarginalTaxRate, reinvestRrspRefund),
+    [people, expectedReturn, inflationRate, showRealValues, householdRetirementAge, workingMarginalTaxRate, reinvestRrspRefund]
   )
   const conservativeProjectionData = useMemo(
-    () => buildCombinedProjection(people, Math.max(0, expectedReturn - 2), inflationRate, showRealValues, householdRetirementAge),
-    [people, expectedReturn, inflationRate, showRealValues, householdRetirementAge]
+    () => buildCombinedProjection(people, Math.max(0, expectedReturn - 2), inflationRate, showRealValues, householdRetirementAge, workingMarginalTaxRate, reinvestRrspRefund),
+    [people, expectedReturn, inflationRate, showRealValues, householdRetirementAge, workingMarginalTaxRate, reinvestRrspRefund]
   )
   const optimisticProjectionData = useMemo(
-    () => buildCombinedProjection(people, expectedReturn + 2, inflationRate, showRealValues, householdRetirementAge),
-    [people, expectedReturn, inflationRate, showRealValues, householdRetirementAge]
+    () => buildCombinedProjection(people, expectedReturn + 2, inflationRate, showRealValues, householdRetirementAge, workingMarginalTaxRate, reinvestRrspRefund),
+    [people, expectedReturn, inflationRate, showRealValues, householdRetirementAge, workingMarginalTaxRate, reinvestRrspRefund]
   )
   const realProjectionData = useMemo(
-    () => buildCombinedProjection(people, expectedReturn, inflationRate, true, householdRetirementAge),
-    [people, expectedReturn, inflationRate, householdRetirementAge]
+    () => buildCombinedProjection(people, expectedReturn, inflationRate, true, householdRetirementAge, workingMarginalTaxRate, reinvestRrspRefund),
+    [people, expectedReturn, inflationRate, householdRetirementAge, workingMarginalTaxRate, reinvestRrspRefund]
   )
 
   const retirementTax = useMemo(() => {
@@ -210,7 +243,7 @@ export function ProjectionProvider({ children }: { children: ReactNode }) {
       realProjectionData, currentProjectionData: projectionData,
       householdRetirementAge, yearsToRetirement, minCurrentAge,
       totalAnnualIncome, totalAnnualPension, totalAnnualCpp, totalAnnualOas,
-      totalPortfolio, totalAnnualContributions, retirementTax,
+      guaranteedIncomeSchedule, totalPortfolio, totalAnnualContributions, retirementTax,
     }}>
       {children}
     </ProjectionContext.Provider>

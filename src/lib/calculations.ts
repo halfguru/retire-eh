@@ -1,3 +1,4 @@
+import { OAS_MAX_ANNUAL_2026 } from '@/lib/tax'
 import type { ProjectionDataPoint } from '@/types/household'
 
 export function getPortfolioAtRetirement(data: ProjectionDataPoint[]): number {
@@ -93,11 +94,77 @@ export function getOasIncomeAtAge(
   return (annualOasAt65 || 0) * oasAdjustmentFactor(resolvedStartAge)
 }
 
+export const RETIREMENT_END_AGE = 95
+
+export interface GuaranteedIncomePerson {
+  currentAge: number
+  annualPension?: number
+  annualCpp?: number
+  cppStartAge?: number
+  oasStartAge?: number
+}
+
+// Build a year-by-year guaranteed-income stream from the household retirement
+// age to the end of the plan. Each person's CPP/OAS starts at their own age, so
+// delayed benefits are captured instead of being valued only at retirement.
+export function buildGuaranteedIncomeSchedule(params: {
+  people: GuaranteedIncomePerson[]
+  householdRetirementAge: number
+  yearsToRetirement: number
+  endAge?: number
+  oasAnnualAt65?: number
+}): number[] {
+  const {
+    people,
+    householdRetirementAge,
+    yearsToRetirement,
+    endAge = RETIREMENT_END_AGE,
+    oasAnnualAt65 = OAS_MAX_ANNUAL_2026,
+  } = params
+
+  if (people.length === 0 || endAge < householdRetirementAge) return []
+
+  const schedule: number[] = []
+  for (let age = householdRetirementAge; age <= endAge; age++) {
+    const offset = age - householdRetirementAge
+    const guaranteed = people.reduce((sum, person) => {
+      const personAge = person.currentAge + yearsToRetirement + offset
+      return sum +
+        (person.annualPension || 0) +
+        getCppIncomeAtAge(person.annualCpp, person.cppStartAge, personAge) +
+        getOasIncomeAtAge(oasAnnualAt65, person.oasStartAge, personAge)
+    }, 0)
+    schedule.push(guaranteed)
+  }
+  return schedule
+}
+
+// Convert a variable guaranteed-income stream into the constant annual amount
+// with the same present value. Using the withdrawal rate as the discount rate
+// keeps the existing "gap / withdrawal rate" goal formula comparable.
+export function levelizeGuaranteedIncome(schedule: number[], withdrawalRate: number): number {
+  if (schedule.length === 0) return 0
+  if (withdrawalRate <= 0) {
+    return schedule.reduce((sum, value) => sum + value, 0) / schedule.length
+  }
+
+  const rate = withdrawalRate / 100
+  let presentValue = 0
+  let annuityFactor = 0
+  for (let year = 0; year < schedule.length; year++) {
+    const discount = Math.pow(1 + rate, year)
+    presentValue += schedule[year] / discount
+    annuityFactor += 1 / discount
+  }
+  return annuityFactor > 0 ? presentValue / annuityFactor : 0
+}
+
 export interface RetirementGoalResult {
   portfolioAtRetirement: number
   requiredAnnualIncome: number
   requiredAnnualIncomeAfterPension: number
   requiredPortfolio: number
+  levelizedGuaranteedIncome: number
   giftTotal: number
   portfolioAfterGifts: number
   progress: number
@@ -114,6 +181,7 @@ export function calculateRetirementGoal(params: {
   currentProjectionData: ProjectionDataPoint[]
   annualIncome: number
   annualPension: number
+  guaranteedIncomeSchedule?: number[]
   replacementRate: number
   withdrawalRate: number
   yearsToRetirement: number
@@ -129,6 +197,7 @@ export function calculateRetirementGoal(params: {
     currentProjectionData,
     annualIncome,
     annualPension,
+    guaranteedIncomeSchedule = [],
     replacementRate,
     withdrawalRate,
     yearsToRetirement,
@@ -150,7 +219,13 @@ export function calculateRetirementGoal(params: {
   const giftTotal = getGiftTotal(plannedGifts, yearsToRetirement, showRealValues, inflationRate)
   const portfolioAfterGifts = getPortfolioAfterGifts(portfolioAtRetirement, plannedGifts, yearsToRetirement, showRealValues, inflationRate)
   const targetAnnualIncome = annualIncome * inflationFactor
-  const targetPension = annualPension * inflationFactor
+  // A delayed CPP/OAS start means the retirement-year benefit can be zero even
+  // though the household will receive it later. Levelizing the full stream
+  // values those future benefits without changing the existing goal formula.
+  const levelizedGuaranteedIncome = guaranteedIncomeSchedule.length > 0
+    ? levelizeGuaranteedIncome(guaranteedIncomeSchedule, withdrawalRate)
+    : annualPension
+  const targetPension = levelizedGuaranteedIncome * inflationFactor
   const requiredAnnualIncome = targetAnnualIncome * (replacementRate / 100)
   const requiredAnnualIncomeAfterPension = Math.max(0, requiredAnnualIncome - targetPension)
   // Required portfolio = income portfolio (for the 4% rule) PLUS the reserved gifts.
@@ -179,6 +254,7 @@ export function calculateRetirementGoal(params: {
     requiredAnnualIncome,
     requiredAnnualIncomeAfterPension,
     requiredPortfolio,
+    levelizedGuaranteedIncome,
     giftTotal,
     portfolioAfterGifts,
     progress,

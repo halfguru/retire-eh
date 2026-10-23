@@ -75,6 +75,39 @@ describe('validateYamlImport', () => {
     }
   })
 
+  it('defaults working tax assumptions for older plans', () => {
+    const result = validateYamlImport(validPlan)
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.assumptions.workingMarginalTaxRate).toBe(30)
+      expect(result.data.assumptions.reinvestRrspRefund).toBe(false)
+    }
+  })
+
+  it('accepts explicit working tax assumptions', () => {
+    const result = validateYamlImport({
+      ...validPlan,
+      assumptions: {
+        ...validPlan.assumptions,
+        workingMarginalTaxRate: 38,
+        reinvestRrspRefund: true,
+      },
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.assumptions.workingMarginalTaxRate).toBe(38)
+      expect(result.data.assumptions.reinvestRrspRefund).toBe(true)
+    }
+  })
+
+  it('fails for an out-of-range working tax rate', () => {
+    const result = validateYamlImport({
+      ...validPlan,
+      assumptions: { ...validPlan.assumptions, workingMarginalTaxRate: 75 },
+    })
+    expect(result.success).toBe(false)
+  })
+
   it('fails for missing assumptions', () => {
     const result = validateYamlImport({
       version: '1.0',

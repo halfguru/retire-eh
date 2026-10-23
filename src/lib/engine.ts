@@ -164,6 +164,12 @@ export function calculateSimpleProjection(
   return projections
 }
 
+export interface ProjectPersonAccountsOptions {
+  // Estimated RRSP tax refund reinvested each year. It is modeled as an
+  // additional TFSA contribution because the refund is after-tax cash.
+  rrspRefundAnnual?: number
+}
+
 /**
  * Projects a person's accounts to retirement and deflates to real purchasing power if requested.
  */
@@ -175,7 +181,8 @@ export function projectPersonAccounts(
   inflationRate: number,
   showRealValues: boolean,
   yearsToRetirement: number,
-  currentYear: number = new Date().getFullYear()
+  currentYear: number = new Date().getFullYear(),
+  options: ProjectPersonAccountsOptions = {}
 ): ProjectionDataPoint[] {
   if (yearsToRetirement <= 0) return []
 
@@ -190,7 +197,8 @@ export function projectPersonAccounts(
     .reduce((sum, acc) => sum + (acc.annualContribution || 0), 0)
   const totalTFSAContribution = accounts
     .filter((a) => a.type === 'TFSA')
-    .reduce((sum, acc) => sum + (acc.annualContribution || 0), 0)
+    .reduce((sum, acc) => sum + (acc.annualContribution || 0), 0) +
+    Math.max(0, options.rrspRefundAnnual || 0)
 
   const householdConfig: HouseholdConfig = {
     retirement_age: retirementAge,

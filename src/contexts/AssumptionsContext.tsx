@@ -7,6 +7,8 @@ interface AssumptionsContextValue extends PlanAssumptions {
   setReplacementRate: (v: number) => void
   setWithdrawalRate: (v: number) => void
   setShowRealValues: (v: boolean) => void
+  setWorkingMarginalTaxRate: (v: number) => void
+  setReinvestRrspRefund: (v: boolean) => void
   setPlannedGifts: (gifts: PlannedGift[]) => void
   addGift: (defaultAge?: number) => void
   updateGift: (id: string, patch: Partial<Omit<PlannedGift, 'id'>>) => void
@@ -48,6 +50,8 @@ export function AssumptionsProvider({ children }: { children: ReactNode }) {
   const [replacementRate, setReplacementRate] = useState(() => loadNumber('replacementRate', 70))
   const [withdrawalRate, setWithdrawalRate] = useState(() => loadNumber('withdrawalRate', 4.0))
   const [showRealValues, setShowRealValues] = useState(() => loadBoolean('showRealValues', true))
+  const [workingMarginalTaxRate, setWorkingMarginalTaxRate] = useState(() => loadNumber('workingMarginalTaxRate', 30))
+  const [reinvestRrspRefund, setReinvestRrspRefund] = useState(() => loadBoolean('reinvestRrspRefund', false))
   const [plannedGifts, setPlannedGifts] = useState<PlannedGift[]>(() => loadGifts('plannedGifts', []))
 
   const setPlannedGiftsExternal = (gifts: PlannedGift[]) => setPlannedGifts(gifts)
@@ -72,6 +76,8 @@ export function AssumptionsProvider({ children }: { children: ReactNode }) {
       replacementRate, setReplacementRate,
       withdrawalRate, setWithdrawalRate,
       showRealValues, setShowRealValues,
+      workingMarginalTaxRate, setWorkingMarginalTaxRate,
+      reinvestRrspRefund, setReinvestRrspRefund,
       plannedGifts, setPlannedGifts: setPlannedGiftsExternal, addGift, updateGift, removeGift,
     }}>
       {children}

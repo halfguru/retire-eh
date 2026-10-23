@@ -12,6 +12,11 @@ export interface PlanAssumptions {
   withdrawalRate: number
   showRealValues: boolean
   plannedGifts: PlannedGift[]
+  // Marginal tax rate assumed while working. Used only to estimate the refund
+  // from RRSP contributions; retirement tax is still calculated separately.
+  workingMarginalTaxRate: number
+  // When enabled, the estimated RRSP refund is reinvested in a TFSA.
+  reinvestRrspRefund: boolean
 }
 
 export interface RetirementPlan {

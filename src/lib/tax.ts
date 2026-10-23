@@ -11,6 +11,8 @@
 // - The Quebec age and retirement-income amounts are phased out on individual
 //   income, not net family income.
 // - The pension income credit uses entered employer pension only.
+// - effectiveRrspTaxRate is the incremental tax (including any OAS clawback)
+//   caused by RRSP withdrawals, not the household's overall average rate.
 
 export interface TaxBracket {
   upTo: number
@@ -188,6 +190,7 @@ export interface RetirementTaxSummary {
   portfolioWithdrawal: number
   taxableWithdrawal: number
   taxFreeWithdrawal: number
+  rrspTax: number
   totalTax: number
   oasClawback: number
   preTaxIncome: number
@@ -268,18 +271,37 @@ export function computeRetirementTaxSummary(params: {
   const averageTaxRate = preTaxIncome > 0 ? (totalTax / preTaxIncome) * 100 : 0
   const topMarginalRate = perPerson.reduce((max, p) => Math.max(max, p.marginalRate), 0)
 
+  // The household average rate includes low-tax guaranteed income, so using it
+  // to value the RRSP overstates after-tax net worth. Instead, isolate the tax
+  // that the RRSP withdrawals actually add (including any OAS clawback they
+  // trigger) by comparing against the same income without those withdrawals.
+  const taxWithoutRrsp = people.reduce((sum, p) => {
+    const baseIncome = Math.max(0, p.pension + p.cpp + p.oas)
+    return sum + computePersonTax({
+      taxableIncome: baseIncome,
+      age: p.ageAtRetirement,
+      oasReceived: p.oas,
+      eligiblePensionIncome: p.pension,
+    }).total
+  }, 0)
+  const rrspTax = Math.max(0, totalTax - taxWithoutRrsp)
+  const effectiveRrspTaxRate = taxableWithdrawal > 0
+    ? Math.min(100, (rrspTax / taxableWithdrawal) * 100)
+    : 0
+
   return {
     perPerson,
     guaranteedIncome,
     portfolioWithdrawal: withdrawal,
     taxableWithdrawal,
     taxFreeWithdrawal,
+    rrspTax,
     totalTax,
     oasClawback,
     preTaxIncome,
     afterTaxIncome,
     averageTaxRate,
-    effectiveRrspTaxRate: averageTaxRate,
+    effectiveRrspTaxRate,
     topMarginalRate,
   }
 }

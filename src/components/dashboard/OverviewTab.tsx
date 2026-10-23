@@ -27,6 +27,7 @@ export function OverviewTab() {
         currentProjectionData={projection.currentProjectionData}
         annualIncome={projection.totalAnnualIncome}
         annualPension={totalGuaranteedPension}
+        guaranteedIncomeSchedule={projection.guaranteedIncomeSchedule}
         replacementRate={assumptions.replacementRate}
         withdrawalRate={assumptions.withdrawalRate}
         yearsToRetirement={projection.yearsToRetirement}
@@ -73,6 +74,7 @@ export function OverviewTab() {
           currentProjectionData={projection.currentProjectionData}
           annualIncome={projection.totalAnnualIncome}
           annualPension={totalGuaranteedPension}
+          guaranteedIncomeSchedule={projection.guaranteedIncomeSchedule}
           replacementRate={assumptions.replacementRate}
           withdrawalRate={assumptions.withdrawalRate}
           yearsToRetirement={projection.yearsToRetirement}

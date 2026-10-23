@@ -11,6 +11,8 @@ const assumptions: PlanAssumptions = {
   withdrawalRate: 4,
   showRealValues: true,
   plannedGifts: [],
+  workingMarginalTaxRate: 30,
+  reinvestRrspRefund: false,
 }
 
 const people: Person[] = [

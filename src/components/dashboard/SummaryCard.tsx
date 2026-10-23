@@ -9,6 +9,7 @@ interface SummaryCardProps {
   currentProjectionData: Parameters<typeof useRetirementGoal>[0]['currentProjectionData']
   annualIncome: number
   annualPension: number
+  guaranteedIncomeSchedule?: number[]
   replacementRate: number
   withdrawalRate: number
   yearsToRetirement: number
@@ -40,7 +41,13 @@ export function SummaryCard(props: SummaryCardProps) {
   const isOverallOnTrack = isOnTrack && (goalProps.effectiveTaxRate !== undefined && goalProps.effectiveTaxRate > 0 ? isAfterTaxOnTrack : true)
   const { yearsToRetirement, showRealValues } = goalProps
 
-  const afterTaxIncome = afterTaxAnnualIncome ?? afterTaxProjectedAnnualIncome
+  // The goal values delayed CPP/OAS by levelizing the benefit stream. Keep the
+  // after-tax card on the same basis by applying the estimated average tax rate
+  // to the difference between levelized and retirement-year income.
+  const afterTaxIncome = taxSummary
+    ? Math.max(0, taxSummary.afterTaxIncome + (projectedAnnualIncome - taxSummary.preTaxIncome) * (1 - taxSummary.averageTaxRate / 100))
+    : (afterTaxAnnualIncome ?? afterTaxProjectedAnnualIncome)
+  const estimatedTax = taxSummary ? Math.max(0, projectedAnnualIncome - afterTaxIncome) : null
   const portfolioAtRetirement = getPortfolioAtRetirement(currentProjectionData)
   const portfolioAfterGifts = getPortfolioAfterGifts(portfolioAtRetirement, goalProps.plannedGifts ?? [], yearsToRetirement, goalProps.showRealValues, goalProps.inflationRate)
   const portfolioWithdrawal = portfolioAfterGifts * (withdrawalRate / 100)
@@ -84,10 +91,10 @@ export function SummaryCard(props: SummaryCardProps) {
             {giftTotal > 0 ? (
               <>
                 (${formatMoney(portfolioAtRetirement)} − ${formatMoney(giftTotal)} gifts) × {withdrawalRate}% ={' '}
-                ${formatMoney(portfolioWithdrawal)} + ${formatMoney(guaranteedIncome)} pensions
+                ${formatMoney(portfolioWithdrawal)} + ${formatMoney(guaranteedIncome)} levelized pensions
               </>
             ) : (
-              <>&#36;{formatMoney(portfolioWithdrawal)} Safe Withdrawal Rate + &#36;{formatMoney(guaranteedIncome)} pensions</>
+              <>&#36;{formatMoney(portfolioWithdrawal)} Safe Withdrawal Rate + &#36;{formatMoney(guaranteedIncome)} levelized pensions</>
             )}
           </div>
         </div>
@@ -99,8 +106,8 @@ export function SummaryCard(props: SummaryCardProps) {
           </div>
           <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-1.5 leading-relaxed">
             {taxSummary
-              ? <>Estimated ${formatMoney(taxSummary.totalTax)} tax on ${formatMoney(taxSummary.preTaxIncome)} (Quebec 2026)</>
-              : <>Adjusted for {(goalProps.effectiveTaxRate ?? 0).toFixed(1)}% tax</>}
+              ? <>Estimated ${formatMoney(estimatedTax ?? 0)} tax on ${formatMoney(projectedAnnualIncome)} (Quebec 2026)</>
+              : <>Adjusted for {(goalProps.effectiveTaxRate ?? 0).toFixed(1)}% tax on RRSP withdrawals</>}
           </div>
         </div>
 
@@ -122,7 +129,7 @@ export function SummaryCard(props: SummaryCardProps) {
       {/* Special Items / Warnings */}
       {taxSummary && taxSummary.perPerson.length > 0 && (
         <div className="mb-6 text-xs text-gray-500 dark:text-gray-400 bg-white/20 dark:bg-black/10 p-3 rounded-lg border border-gray-200/20 dark:border-gray-800/20">
-          <span className="font-semibold text-gray-700 dark:text-gray-300">Estimated 2026 tax:</span>{' '}
+          <span className="font-semibold text-gray-700 dark:text-gray-300">Estimated 2026 tax at retirement:</span>{' '}
           {taxSummary.perPerson.map((p, i) => (
             <span key={p.name}>
               {i > 0 && ' • '}
@@ -172,7 +179,7 @@ export function SummaryCard(props: SummaryCardProps) {
             </div>
             <div className="flex items-center justify-between gap-3 py-0.5">
               <span className="text-gray-600 dark:text-gray-400">
-                <span className="text-emerald-500 dark:text-emerald-400">+</span> Pensions / CPP / OAS
+                <span className="text-emerald-500 dark:text-emerald-400">+</span> Levelized pensions / CPP / OAS
               </span>
               <span className="tabular-nums whitespace-nowrap text-emerald-600 dark:text-emerald-400">
                 ${formatMoney(guaranteedIncome)}
@@ -193,7 +200,7 @@ export function SummaryCard(props: SummaryCardProps) {
         <div className="pt-4 border-t border-amber-200/50 dark:border-amber-800/50">
           <p className="text-sm text-amber-800 dark:text-amber-300 flex items-start gap-2 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20">
              <Lightbulb className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-             <span>Save an additional <strong className="text-base text-amber-900 dark:text-amber-200">${formatMoney(afterTaxAdditionalAnnualSavings)}/year</strong> (after-tax adjusted) to stay fully on track for your goals.</span>
+             <span>Save an additional <strong className="text-base text-amber-900 dark:text-amber-200">${formatMoney(afterTaxAdditionalAnnualSavings)}/year</strong> (after-tax goal) to stay fully on track for your goals.</span>
           </p>
         </div>
       )}
