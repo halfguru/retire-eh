@@ -7,6 +7,7 @@ interface GoalsCardProps {
   currentProjectionData: Parameters<typeof useRetirementGoal>[0]['currentProjectionData']
   annualIncome: number
   annualPension: number
+  guaranteedIncomeSchedule?: number[]
   replacementRate: number
   withdrawalRate: number
   yearsToRetirement: number
@@ -21,7 +22,11 @@ interface GoalsCardProps {
 
 export function GoalsCard(props: GoalsCardProps) {
   const goal = useRetirementGoal(props)
-  const { yearsToRetirement, annualPension, effectiveTaxRate } = props
+  const { yearsToRetirement, effectiveTaxRate, showRealValues, inflationRate } = props
+  const inflationFactor = showRealValues
+    ? 1
+    : Math.pow(1 + inflationRate / 100, Math.max(0, yearsToRetirement))
+  const guaranteedIncome = goal.levelizedGuaranteedIncome * inflationFactor
 
   return (
     <div className="animate-fade-in-up card p-6">
@@ -31,14 +36,17 @@ export function GoalsCard(props: GoalsCardProps) {
       </h2>
 
       <div className="space-y-4">
-        {annualPension > 0 && (
+        {guaranteedIncome > 0 && (
           <div className="text-sm text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-800">
             <div className="flex justify-between items-center">
-              <span><Wallet className="inline w-4 h-4 align-middle text-amber-500" /> Annual Pension + CPP Income</span>
-              <span className="font-semibold">${formatMoney(annualPension)}/year</span>
+              <span><Wallet className="inline w-4 h-4 align-middle text-amber-500" /> Levelized Pension + CPP/OAS</span>
+              <span className="font-semibold">${formatMoney(guaranteedIncome)}/year</span>
             </div>
             <div className="text-xs mt-1 text-emerald-700 dark:text-emerald-300">
               After pension, need: ${formatMoney(goal.requiredAnnualIncomeAfterPension)}/year from portfolio
+            </div>
+            <div className="text-[11px] mt-1 text-emerald-700/80 dark:text-emerald-300/80">
+              Benefits are levelized over retirement, so delayed CPP/OAS starts are included.
             </div>
           </div>
         )}
@@ -60,7 +68,7 @@ export function GoalsCard(props: GoalsCardProps) {
             <div>
               <div className="flex justify-between text-xs mb-1">
                 <span className="text-gray-600 dark:text-gray-400 font-medium text-indigo-600 dark:text-indigo-400">After-Tax Progress: {goal.afterTaxProgress.toFixed(1)}%</span>
-                <span className="text-gray-500 dark:text-gray-400">Est. {effectiveTaxRate.toFixed(1)}% avg tax</span>
+                <span className="text-gray-500 dark:text-gray-400">Est. {effectiveTaxRate.toFixed(1)}% tax on RRSP withdrawals</span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div
@@ -99,7 +107,7 @@ export function GoalsCard(props: GoalsCardProps) {
             <span className="font-semibold text-amber-700 dark:text-amber-300">
               ${formatMoney(goal.afterTaxAdditionalAnnualSavings)}
             </span>{' '}
-            per year across accounts (after-tax adjusted).
+            per year across accounts (after-tax goal).
           </div>
         )}
       </div>

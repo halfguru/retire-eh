@@ -33,6 +33,10 @@ const assumptionsSchema = z.object({
   replacementRate: z.number().min(0).max(200),
   withdrawalRate: z.number().min(0.01).max(20),
   showRealValues: z.boolean(),
+  // Optional with defaults so plans exported before these assumptions existed
+  // still import cleanly.
+  workingMarginalTaxRate: z.number().min(0).max(60).optional().default(30),
+  reinvestRrspRefund: z.boolean().optional().default(false),
   plannedGifts: z.array(plannedGiftSchema).optional().default([]),
 })
 

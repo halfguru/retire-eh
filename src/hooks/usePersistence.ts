@@ -4,7 +4,16 @@ import { useAssumptions } from '@/contexts/AssumptionsContext'
 
 export function usePersistence() {
   const { people } = usePeople()
-  const { expectedReturn, inflationRate, replacementRate, withdrawalRate, showRealValues, plannedGifts } = useAssumptions()
+  const {
+    expectedReturn,
+    inflationRate,
+    replacementRate,
+    withdrawalRate,
+    showRealValues,
+    workingMarginalTaxRate,
+    reinvestRrspRefund,
+    plannedGifts,
+  } = useAssumptions()
   const [localStorageError, setLocalStorageError] = useState<string | null>(null)
 
   const saveToLocalStorage = useCallback(() => {
@@ -27,6 +36,8 @@ export function usePersistence() {
       localStorage.setItem('showRealValues', String(showRealValues))
       localStorage.setItem('replacementRate', String(replacementRate))
       localStorage.setItem('withdrawalRate', String(withdrawalRate))
+      localStorage.setItem('workingMarginalTaxRate', String(workingMarginalTaxRate))
+      localStorage.setItem('reinvestRrspRefund', String(reinvestRrspRefund))
       localStorage.setItem('plannedGifts', JSON.stringify(plannedGifts))
     } catch (error) {
       const message = error instanceof DOMException && error.name === 'QuotaExceededError'
@@ -36,7 +47,7 @@ export function usePersistence() {
       return message
     }
     return null
-  }, [people, expectedReturn, inflationRate, showRealValues, replacementRate, withdrawalRate, plannedGifts])
+  }, [people, expectedReturn, inflationRate, showRealValues, replacementRate, withdrawalRate, workingMarginalTaxRate, reinvestRrspRefund, plannedGifts])
 
   useEffect(() => {
     const error = saveToLocalStorage()

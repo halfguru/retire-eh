@@ -37,6 +37,8 @@ function AppContent() {
     withdrawalRate: assumptions.withdrawalRate,
     showRealValues: assumptions.showRealValues,
     plannedGifts: assumptions.plannedGifts,
+    workingMarginalTaxRate: assumptions.workingMarginalTaxRate,
+    reinvestRrspRefund: assumptions.reinvestRrspRefund,
   }), [assumptions])
 
   const applyPlan = useCallback((plan: RetirementPlan) => {
@@ -45,6 +47,8 @@ function AppContent() {
     assumptions.setReplacementRate(plan.assumptions.replacementRate)
     assumptions.setWithdrawalRate(plan.assumptions.withdrawalRate)
     assumptions.setShowRealValues(plan.assumptions.showRealValues)
+    assumptions.setWorkingMarginalTaxRate(plan.assumptions.workingMarginalTaxRate ?? 30)
+    assumptions.setReinvestRrspRefund(plan.assumptions.reinvestRrspRefund ?? false)
     assumptions.setPlannedGifts(plan.assumptions.plannedGifts ?? [])
     peopleApi.setPeople(plan.people)
     if (plan.people.length > 0) {

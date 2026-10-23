@@ -10,6 +10,8 @@ const mockAssumptions: PlanAssumptions = {
   withdrawalRate: 4,
   showRealValues: true,
   plannedGifts: [],
+  workingMarginalTaxRate: 30,
+  reinvestRrspRefund: false,
 }
 
 const mockPeople: Person[] = [
@@ -48,6 +50,8 @@ describe('yaml-utils', () => {
       expect(result).toContain('replacementRate: 70')
       expect(result).toContain('withdrawalRate: 4')
       expect(result).toContain('showRealValues: true')
+      expect(result).toContain('workingMarginalTaxRate: 30')
+      expect(result).toContain('reinvestRrspRefund: false')
     })
 
     it('includes all account data', () => {
@@ -66,6 +70,8 @@ describe('yaml-utils', () => {
       expect(imported).not.toBeNull()
       expect(imported!.version).toBe('1.0')
       expect(imported!.assumptions.expectedReturn).toBe(7)
+      expect(imported!.assumptions.workingMarginalTaxRate).toBe(30)
+      expect(imported!.assumptions.reinvestRrspRefund).toBe(false)
       expect(imported!.people).toHaveLength(1)
       expect(imported!.people[0].name).toBe('Alice')
       expect(imported!.people[0].accounts).toHaveLength(2)

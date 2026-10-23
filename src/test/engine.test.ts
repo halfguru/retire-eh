@@ -260,4 +260,15 @@ describe('engine: projectPersonAccounts', () => {
     const points = projectPersonAccounts(accounts, 65, 65, 7.0, 2.5, false, 0, 2026)
     expect(points).toEqual([])
   })
+
+  it('reinvests an RRSP refund as an additional TFSA contribution', () => {
+    const withoutRefund = projectPersonAccounts(accounts, 65, 35, 7.0, 2.5, false, 30, 2026)
+    const withRefund = projectPersonAccounts(accounts, 65, 35, 7.0, 2.5, false, 30, 2026, {
+      rrspRefundAnnual: 1500,
+    })
+
+    expect(withRefund[30].RRSP).toBeCloseTo(withoutRefund[30].RRSP ?? 0, 2)
+    expect(withRefund[30].TFSA!).toBeGreaterThan(withoutRefund[30].TFSA ?? 0)
+    expect(withRefund[30].Total!).toBeGreaterThan(withoutRefund[30].Total ?? 0)
+  })
 })

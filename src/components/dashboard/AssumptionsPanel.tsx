@@ -9,6 +9,10 @@ interface AssumptionsPanelProps {
   setReplacementRate: (value: number) => void
   withdrawalRate: number
   setWithdrawalRate: (value: number) => void
+  workingMarginalTaxRate: number
+  setWorkingMarginalTaxRate: (value: number) => void
+  reinvestRrspRefund: boolean
+  setReinvestRrspRefund: (value: boolean) => void
 }
 
 interface AssumptionFieldProps {
@@ -66,6 +70,10 @@ export function AssumptionsPanel({
   setReplacementRate,
   withdrawalRate,
   setWithdrawalRate,
+  workingMarginalTaxRate,
+  setWorkingMarginalTaxRate,
+  reinvestRrspRefund,
+  setReinvestRrspRefund,
 }: AssumptionsPanelProps) {
   return (
     <div className="animate-fade-in-up-delay-1 card p-4 h-fit">
@@ -107,6 +115,26 @@ export function AssumptionsPanel({
           step={0.1}
           onChange={setWithdrawalRate}
         />
+        <AssumptionField
+          label="Working Tax Rate"
+          tooltip="Estimated marginal tax rate while working. Used only to estimate the refund from RRSP contributions."
+          value={workingMarginalTaxRate}
+          min={0}
+          max={60}
+          step={1}
+          onChange={setWorkingMarginalTaxRate}
+        />
+        <label className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-300 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={reinvestRrspRefund}
+            onChange={(e) => setReinvestRrspRefund(e.target.checked)}
+            className="mt-0.5 accent-indigo-500"
+          />
+          <span>
+            Reinvest RRSP tax refunds <InfoTooltip text="When enabled, the estimated refund from RRSP contributions is added to a TFSA and compounded. Leave off to keep the projection conservative." />
+          </span>
+        </label>
       </div>
       <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-4 leading-relaxed">
         Retirement income tax is estimated automatically using 2026 Quebec federal and provincial rates.

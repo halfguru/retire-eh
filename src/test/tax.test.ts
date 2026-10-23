@@ -207,7 +207,16 @@ describe('computeRetirementTaxSummary', () => {
     expectClose(summary.afterTaxIncome, summary.preTaxIncome - summary.totalTax)
     expect(summary.averageTaxRate).toBeGreaterThan(0)
     expect(summary.averageTaxRate).toBeLessThan(100)
-    expect(summary.effectiveRrspTaxRate).toBe(summary.averageTaxRate)
+
+    const taxWithoutRrsp = people.reduce((sum, p) => sum + computePersonTax({
+      taxableIncome: p.pension + p.cpp + p.oas,
+      age: p.ageAtRetirement,
+      oasReceived: p.oas,
+      eligiblePensionIncome: p.pension,
+    }).total, 0)
+    expectClose(summary.rrspTax, summary.totalTax - taxWithoutRrsp)
+    expectClose(summary.effectiveRrspTaxRate, (summary.rrspTax / summary.taxableWithdrawal) * 100)
+    expect(summary.effectiveRrspTaxRate).not.toBeCloseTo(summary.averageTaxRate, 2)
   })
 
   it('handles a portfolio with no RRSP without dividing by zero', () => {
@@ -219,6 +228,8 @@ describe('computeRetirementTaxSummary', () => {
     })
     expect(summary.taxableWithdrawal).toBe(0)
     expectClose(summary.taxFreeWithdrawal, 20000)
+    expect(summary.rrspTax).toBe(0)
+    expect(summary.effectiveRrspTaxRate).toBe(0)
     expect(summary.perPerson.every(p => p.rrifWithdrawal === 0)).toBe(true)
   })
 })
